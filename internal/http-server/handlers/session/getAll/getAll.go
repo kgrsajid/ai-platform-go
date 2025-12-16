@@ -18,7 +18,7 @@ type SessionGetAll interface {
 }
 type Response struct {
 	response.Response
-	Sessions []res.SessionResponse
+	Sessions []res.SessionResponse `json:"sessions"`
 }
 
 func New(log *slog.Logger, sessionService *sessionService.Service) http.HandlerFunc {
@@ -31,12 +31,14 @@ func New(log *slog.Logger, sessionService *sessionService.Service) http.HandlerF
 		userId, ok := auth.GetUserID(r)
 		if !ok {
 			log.Error("user id is null")
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("user id is null"))
 			return
 		}
 		sessions, err := sessionService.GetAllSessions(userId)
 		if err != nil {
 			log.Error("failed to get all sessions")
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to get all sessions"))
 			return
 		}

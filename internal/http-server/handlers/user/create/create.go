@@ -34,6 +34,7 @@ func New(log *slog.Logger, userservice *userservice.Service) http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			log.Error("failed to decode request", slog.String("error", err.Error()))
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("Invalid request body"))
 			return
 		}
@@ -41,11 +42,13 @@ func New(log *slog.Logger, userservice *userservice.Service) http.HandlerFunc {
 
 		if req.Email == "" || req.Name == "" || req.Password == "" {
 			log.Error("missing fields")
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("missing fields"))
 			return
 		}
 
 		if !models.IsValidRole(req.Role) {
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("invalid role"))
 			return
 		}
@@ -53,6 +56,7 @@ func New(log *slog.Logger, userservice *userservice.Service) http.HandlerFunc {
 		hash, err := password.HashPassword(req.Password)
 		if err != nil {
 			log.Error("failed to hash password", slog.Any("err", err))
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to hash password"))
 			return
 		}
@@ -66,6 +70,7 @@ func New(log *slog.Logger, userservice *userservice.Service) http.HandlerFunc {
 		newUser, err := userservice.CreateUser(&user)
 		if err != nil {
 			log.Error("failed to create user", slog.String("error", err.Error()))
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to create user"))
 			return
 		}

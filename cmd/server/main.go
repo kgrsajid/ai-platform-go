@@ -6,6 +6,7 @@ import (
 	"os"
 	"project-go/internal/app"
 	"project-go/internal/config"
+	"project-go/internal/http-server/middleware/cors"
 	"project-go/internal/http-server/repository/store"
 	"project-go/internal/lib/logger/sl"
 	"project-go/internal/logger"
@@ -26,11 +27,12 @@ func main() {
 	store := store.NewStore(db)
 	app := app.New(log, store, cfg.JWT_Key)
 	router := server.NewRouter(app, log, store, cfg.JWT_Key)
+	handler := cors.CORSMiddleware(router)
 	log.Info("starting server", slog.String("address", cfg.Address))
 
 	srv := &http.Server{
 		Addr:         cfg.Address,
-		Handler:      router,
+		Handler:      handler,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,

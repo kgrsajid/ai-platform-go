@@ -38,17 +38,20 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 
 		if err != nil {
 			log.Error("failed to decode req", slog.String("error", err.Error()))
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("failed to decode req"))
 			return
 		}
 		if req.Title == "" {
 			log.Error("text field is empty")
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("text field is empty"))
 			return
 		}
 		createdTest, err := testService.TestCreate(req)
 		if err != nil {
 			log.Error("failed to create test", slog.String("error", err.Error()))
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to create test"))
 			return
 		}

@@ -31,6 +31,7 @@ func New(log *slog.Logger, service *chatservice.Service) http.HandlerFunc {
 
 		var req req.CreateChatRequest
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("invalid request body"))
 			return
 		}
@@ -43,6 +44,7 @@ func New(log *slog.Logger, service *chatservice.Service) http.HandlerFunc {
 
 		chat, err := service.CreateMessage(userID, req.SessionId, req.Message)
 		if err != nil {
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error(err.Error()))
 			return
 		}
