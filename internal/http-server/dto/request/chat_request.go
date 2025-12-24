@@ -1,6 +1,10 @@
 package req
 
-type CreateChatRequest struct {
+type AddChatRequest struct {
 	Message   string `json:"message"`
-	SessionId *uint  `json:"session_id"`
+	SessionId uint   `json:"session_id"`
+}
+
+type AddMessageByCreatingSession struct {
+	Message string `json:"message"`
 }

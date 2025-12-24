@@ -25,10 +25,14 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 
 	router.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
-		r.Post("/chat", app.CreateChatHandler)
+		r.Post("/chat", app.AddChatHandler)
+		r.Post("/chat/new", app.AddMessageByCreatingSession)
 		r.Get("/session", app.GetAllSessions)
 		r.Get("/session/{sessionId}", app.GetChatBySessionIdHandler)
 		r.Post("/test", app.TestCreate)
+		r.Get("/test", app.TestGetAll)
+		r.Post("/test/category", app.CreateCategory)
+		r.Get("/test/category", app.GetAllCategories)
 	})
 	router.Route("/auth", func(r chi.Router) {
 		r.Post("/register", app.UserCreate)

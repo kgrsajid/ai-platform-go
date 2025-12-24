@@ -17,13 +17,16 @@ func New(dsn string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	err = db.Exec(`
-        DO $$
-        BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'role_enum') THEN
-                CREATE TYPE role_enum AS ENUM ('admin','teacher','student');
-            END IF;
-        END$$;
-    `).Error
+		DO $$
+		BEGIN
+				IF NOT EXISTS (
+						SELECT 1 FROM pg_type WHERE typname = 'difficulty_enum'
+				) THEN
+						CREATE TYPE difficulty_enum AS ENUM ('easy','medium','hard');
+				END IF;
+		END$$;
+	`).Error
+
 	if err != nil {
 		log.Fatal("Failed to create role_enum:", err)
 	}
@@ -39,6 +42,7 @@ func New(dsn string) (*gorm.DB, error) {
 		&models.CardHolder{},
 		&models.Card{},
 		&models.Game{},
+		&models.Category{},
 		&models.GameResult{},
 		&models.TestOption{},
 	)

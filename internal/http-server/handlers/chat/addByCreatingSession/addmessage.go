@@ -1,4 +1,4 @@
-package chatCreate
+package addbycreatingsession
 
 import (
 	"log/slog"
@@ -23,13 +23,13 @@ type SessionCreate interface {
 
 type Response struct {
 	response.Response
-	Chat res.ChatResponse
+	Chat res.ChatResponse `json:"chat"`
 }
 
 func New(log *slog.Logger, service *chatservice.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		var req req.CreateChatRequest
+		var req req.AddMessageByCreatingSession
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("invalid request body"))
@@ -42,7 +42,7 @@ func New(log *slog.Logger, service *chatservice.Service) http.HandlerFunc {
 			return
 		}
 
-		chat, err := service.CreateMessage(userID, req.SessionId, req.Message)
+		chat, err := service.AddMessageByCreatingSession(userID, req.Message)
 		if err != nil {
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error(err.Error()))

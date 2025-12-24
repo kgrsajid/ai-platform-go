@@ -25,29 +25,36 @@ func New(chatRepo ChatRepository, sessionRepo SessionRepository) *Service {
 	}
 }
 
-func (s *Service) CreateMessage(userID uint, sessionID *uint, message string) (*models.ChatMessage, error) {
+func (s *Service) AddMessage(userID uint, sessionID uint, message string) (*models.ChatMessage, error) {
 	if message == "" {
 		return nil, errors.New("message cannot be empty")
 	}
-
-	if sessionID == nil {
-		session := &models.SessionHistory{
-			StudentID: userID,
-			Title:     "Dragon history",
-		}
-		newSession, err := s.sessionRepo.CreateSession(session)
-		if err != nil {
-			return nil, err
-		}
-		sessionID = &newSession.ID
+	chat := &models.ChatMessage{
+		SessionID: sessionID,
+		Role:      "user",
+		Content:   message,
 	}
+	return s.chatRepo.CreateChat(chat)
+}
 
+func (s *Service) AddMessageByCreatingSession(userID uint, message string) (*models.ChatMessage, error) {
+	if message == "" {
+		return nil, errors.New("message cannot be empty")
+	}
+	session := &models.SessionHistory{
+		StudentID: userID,
+		Title:     "Dragon history",
+	}
+	newSession, err := s.sessionRepo.CreateSession(session)
+	if err != nil {
+		return nil, err
+	}
+	var sessionID = &newSession.ID
 	chat := &models.ChatMessage{
 		SessionID: *sessionID,
 		Role:      "user",
 		Content:   message,
 	}
-
 	return s.chatRepo.CreateChat(chat)
 }
 

@@ -20,7 +20,7 @@ type ChatGetBySessionId interface {
 
 type Response struct {
 	response.Response
-	Chats []res.ChatResponse
+	Chats []res.ChatResponse `json:"chat"`
 }
 
 func New(log *slog.Logger, service *chatservice.Service) http.HandlerFunc {

@@ -3,27 +3,36 @@ package app
 import (
 	"log/slog"
 	"net/http"
-	chatCreate "project-go/internal/http-server/handlers/chat/create"
+	chatAdd "project-go/internal/http-server/handlers/chat/add"
+	addbycreatingsession "project-go/internal/http-server/handlers/chat/addByCreatingSession"
 	GetChatBySessionId "project-go/internal/http-server/handlers/chat/getBySessionId"
 	GetAllSessions "project-go/internal/http-server/handlers/session/getAll"
-	TestCreate "project-go/internal/http-server/handlers/test/test"
+	CategoryCreate "project-go/internal/http-server/handlers/test-category/create"
+	CategoryGetAll "project-go/internal/http-server/handlers/test-category/getAll"
+	TestCreate "project-go/internal/http-server/handlers/test/test/create"
+	TestGetAll "project-go/internal/http-server/handlers/test/test/getAll"
 	UserCreate "project-go/internal/http-server/handlers/user/create"
 	UserLogin "project-go/internal/http-server/handlers/user/login"
 	"project-go/internal/http-server/repository/store"
 	chatservice "project-go/internal/http-server/service/chat"
 	sessionService "project-go/internal/http-server/service/session"
 	testservice "project-go/internal/http-server/service/test"
+	testcategoryservice "project-go/internal/http-server/service/test-category"
 	userservice "project-go/internal/http-server/service/user"
 	"project-go/internal/lib/jwt"
 )
 
 type App struct {
-	CreateChatHandler         http.HandlerFunc
-	GetChatBySessionIdHandler http.HandlerFunc
-	GetAllSessions            http.HandlerFunc
-	TestCreate                http.HandlerFunc
-	UserCreate                http.HandlerFunc
-	UserLogin                 http.HandlerFunc
+	AddChatHandler              http.HandlerFunc
+	AddMessageByCreatingSession http.HandlerFunc
+	GetChatBySessionIdHandler   http.HandlerFunc
+	GetAllSessions              http.HandlerFunc
+	TestCreate                  http.HandlerFunc
+	TestGetAll                  http.HandlerFunc
+	UserCreate                  http.HandlerFunc
+	UserLogin                   http.HandlerFunc
+	CreateCategory              http.HandlerFunc
+	GetAllCategories            http.HandlerFunc
 }
 
 func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
@@ -33,24 +42,34 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	testRepo := store.TestRepo
 	questionRepo := store.QuestionRepo
 	userRepo := store.UserRepo
+	categoryRepo := store.CategoryRepo
 	// сервисы
 	chatService := chatservice.New(chatRepo, sessionRepo)
 	sessionService := sessionService.New(sessionRepo)
 	testService := testservice.New(testRepo, questionRepo)
 	userService := userservice.New(userRepo)
+	testCategoryService := testcategoryservice.New(categoryRepo)
 	// хендлеры
-	CreateChatHandler := chatCreate.New(log, chatService)
+	AddChatHandler := chatAdd.New(log, chatService)
+	AddMessageByCreatingSession := addbycreatingsession.New(log, chatService)
 	GetChatBySessionIdHandler := GetChatBySessionId.New(log, chatService)
 	GetAllSessions := GetAllSessions.New(log, sessionService)
 	TestCreate := TestCreate.New(log, testService)
+	TestGetAll := TestGetAll.New(log, testService)
+	CategoryCreate := CategoryCreate.New(log, testCategoryService)
+	CategoryGetAll := CategoryGetAll.New(log, *testCategoryService)
 	UserCreate := UserCreate.New(log, userService)
 	UserLogin := UserLogin.New(log, userService, jwt.NewJWTService(jwtKey))
 	return &App{
-		CreateChatHandler:         CreateChatHandler,
-		GetChatBySessionIdHandler: GetChatBySessionIdHandler,
-		GetAllSessions:            GetAllSessions,
-		TestCreate:                TestCreate,
-		UserCreate:                UserCreate,
-		UserLogin:                 UserLogin,
+		AddChatHandler:              AddChatHandler,
+		AddMessageByCreatingSession: AddMessageByCreatingSession,
+		GetChatBySessionIdHandler:   GetChatBySessionIdHandler,
+		GetAllSessions:              GetAllSessions,
+		TestCreate:                  TestCreate,
+		TestGetAll:                  TestGetAll,
+		CreateCategory:              CategoryCreate,
+		GetAllCategories:            CategoryGetAll,
+		UserCreate:                  UserCreate,
+		UserLogin:                   UserLogin,
 	}
 }

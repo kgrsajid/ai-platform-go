@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/lib/pq"
 	_ "gorm.io/gorm"
 )
 
@@ -12,6 +13,14 @@ const (
 	Admin   Role = "admin"
 	Teacher Role = "teacher"
 	Student Role = "student"
+)
+
+type Difficulty string
+
+const (
+	Easy   Difficulty = "easy"
+	Medium Difficulty = "medium"
+	Hard   Difficulty = "hard"
 )
 
 func IsValidRole(r string) bool {
@@ -65,12 +74,22 @@ type ChatMessage struct {
 	CreatedAt time.Time
 }
 
+// Категория
+type Category struct {
+	ID    uint   `gorm:"primaryKey"`
+	Name  string `gorm:"size:100;unique;not null"`
+	Tests []Test `gorm:"many2many:test_categories"`
+}
+
 // Тест
 type Test struct {
-	ID          uint   `gorm:"primaryKey"`
-	Title       string `gorm:"size:255;not null"`
-	Description string `gorm:"type:text"`
-	Questions   []TestQuestion
+	ID          uint           `gorm:"primaryKey"`
+	Title       string         `gorm:"size:255;not null"`
+	Description string         `gorm:"type:text"`
+	Difficulty  Difficulty     `gorm:"type:difficulty_enum;not null;default:'medium'"`
+	Categories  []Category     `gorm:"many2many:test_categories"`
+	Tags        pq.StringArray `gorm:"type:text[]"`
+	Questions   []TestQuestion `gorm:"foreignKey:TestID"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

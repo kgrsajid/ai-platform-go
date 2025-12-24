@@ -3,6 +3,7 @@ package store
 import (
 	"project-go/internal/http-server/repository/chat"
 	"project-go/internal/http-server/repository/session"
+	testcategory "project-go/internal/http-server/repository/test-category"
 	"project-go/internal/http-server/repository/test/question"
 	"project-go/internal/http-server/repository/test/test"
 	"project-go/internal/http-server/repository/user"
@@ -16,6 +17,7 @@ type Store struct {
 	ChatRepo     *chat.ChatRepository
 	TestRepo     *test.TestRepository
 	QuestionRepo *question.QuestionRepository
+	CategoryRepo *testcategory.TestCategoryRepository
 }
 
 func NewStore(db *gorm.DB) *Store {
@@ -25,5 +27,6 @@ func NewStore(db *gorm.DB) *Store {
 		ChatRepo:     chat.NewChatnRepo(db),
 		TestRepo:     test.NewTestRepo(db),
 		QuestionRepo: question.NewQuestionRepo(db),
+		CategoryRepo: testcategory.New(db),
 	}
 }

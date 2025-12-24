@@ -2,11 +2,14 @@ package testservice
 
 import (
 	req "project-go/internal/http-server/dto/request"
+	res "project-go/internal/http-server/dto/response"
 	"project-go/internal/models"
 )
 
-type TestCreate interface {
+type TestRepo interface {
 	CreateTest(test *models.Test) (*models.Test, error)
+	GetAllTest(testFilter req.TestFilter) ([]res.TestWithQuestionsCount, int64, error)
+	GetTestById(testId uint64) (*models.Test, error)
 }
 
 type QuestionAdd interface {
@@ -14,11 +17,11 @@ type QuestionAdd interface {
 }
 
 type Service struct {
-	TestRepo     TestCreate
+	TestRepo     TestRepo
 	QuestionRepo QuestionAdd
 }
 
-func New(TestRepo TestCreate, QuestionRepo QuestionAdd) *Service {
+func New(TestRepo TestRepo, QuestionRepo QuestionAdd) *Service {
 	return &Service{
 		TestRepo:     TestRepo,
 		QuestionRepo: QuestionRepo,
@@ -34,10 +37,34 @@ func (s *Service) TestCreate(test req.TestRequest) (*models.Test, error) {
 
 	return createdTest, nil
 }
+
+func (s *Service) GetAllTest(testFilter req.TestFilter) ([]res.TestWithQuestionsCount, int64, error) {
+	tests, total, err := s.TestRepo.GetAllTest(testFilter)
+	if err != nil {
+		return nil, 0, err
+	}
+	return tests, total, nil
+}
+
+func (s *Service) GetTestById(testId uint64) (*res.TestDetailsResponse, error) {
+	tests, err := s.TestRepo.GetTestById(testId)
+	if err != nil {
+		return nil, err
+	}
+	return res.ToTestDetailsResponse(tests), nil
+}
+
 func mapTestRequestToModel(req req.TestRequest) *models.Test {
 	test := &models.Test{
 		Title:       req.Title,
 		Description: req.Description,
+		Tags:        req.Tags,
+		Difficulty:  models.Difficulty(req.Difficulty),
+	}
+	for _, catID := range req.Categories {
+		test.Categories = append(test.Categories, models.Category{
+			ID: catID,
+		})
 	}
 
 	for _, q := range req.Questions {

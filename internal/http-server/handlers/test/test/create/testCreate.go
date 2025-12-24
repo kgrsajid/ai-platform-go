@@ -7,23 +7,14 @@ import (
 	res "project-go/internal/http-server/dto/response"
 	testservice "project-go/internal/http-server/service/test"
 	"project-go/internal/lib/api/response"
-	"project-go/internal/models"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
 
-type TestCreate interface {
-	CreateTest(test *models.Test) (*models.Test, error)
-}
-
-type QuestionAdd interface {
-	CreateQuestion(question *models.TestQuestion) (*models.TestQuestion, error)
-}
-
 type Response struct {
 	response.Response
-	Test res.TestResponse
+	Test res.TestDetailsResponse
 }
 
 func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
@@ -42,10 +33,10 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 			render.JSON(w, r, response.Error("failed to decode req"))
 			return
 		}
-		if req.Title == "" {
-			log.Error("text field is empty")
+		if req.Title == "" || req.Difficulty == "" || len(req.Categories) == 0 {
+			log.Error("some field is empty")
 			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, response.Error("text field is empty"))
+			render.JSON(w, r, response.Error("some field is empty"))
 			return
 		}
 		createdTest, err := testService.TestCreate(req)
@@ -74,12 +65,15 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 
 		render.JSON(w, r, Response{
 			Response: response.OK(),
-			Test: res.TestResponse{
+			Test: res.TestDetailsResponse{
 				ID:          createdTest.ID,
 				Title:       createdTest.Title,
 				Description: createdTest.Description,
 				CreatedAt:   createdTest.CreatedAt,
 				Questions:   questionsResp,
+				Difficulty:  string(createdTest.Difficulty),
+				Tags:        createdTest.Tags,
+				Categories:  createdTest.Categories,
 			},
 		})
 

@@ -34,7 +34,7 @@ func (r *ChatRepository) GetChatBySessionId(sessionId uint) ([]models.ChatMessag
 		Preload("Session").
 		Preload("Session.Student").
 		Where("session_id = ?", sessionId).
-		Order("created_at DESC").
+		Order("created_at ASC").
 		Find(&chats).Error; err != nil {
 		return nil, err
 	}
