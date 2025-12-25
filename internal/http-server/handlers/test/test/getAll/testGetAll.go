@@ -29,7 +29,24 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		search := r.URL.Query().Get("search")
-		category := r.URL.Query().Get("category")
+		categoriesParams := r.URL.Query()["categories[]"]
+		minQStr := r.URL.Query().Get("minQ")
+		maxQStr := r.URL.Query().Get("maxQ")
+		var minQ, maxQ *int
+		if v, err := strconv.Atoi(minQStr); err == nil {
+			minQ = &v
+		}
+		if v, err := strconv.Atoi(maxQStr); err == nil {
+			maxQ = &v
+		}
+		var categories []uint
+		for _, p := range categoriesParams {
+			id, err := strconv.Atoi(p)
+			if err != nil {
+				continue
+			}
+			categories = append(categories, uint(id))
+		}
 		difficulty := r.URL.Query().Get("difficulty")
 		if page <= 0 {
 			page = 1
@@ -44,7 +61,9 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 			Offset:     offset,
 			Search:     &search,
 			Difficulty: &difficulty,
-			Category:   &category,
+			Categories: categories,
+			MinQ:       minQ,
+			MaxQ:       maxQ,
 		}
 
 		tests, total, err := testService.GetAllTest(*testFilter)

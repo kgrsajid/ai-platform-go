@@ -14,7 +14,7 @@ import (
 
 type Response struct {
 	response.Response
-	Test res.TestDetailsResponse
+	Test res.TestDetailsResponse `json:"data"`
 }
 
 func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {

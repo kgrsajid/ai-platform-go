@@ -9,8 +9,11 @@ import (
 	GetAllSessions "project-go/internal/http-server/handlers/session/getAll"
 	CategoryCreate "project-go/internal/http-server/handlers/test-category/create"
 	CategoryGetAll "project-go/internal/http-server/handlers/test-category/getAll"
+	AddTestResult "project-go/internal/http-server/handlers/test/test/addResult"
 	TestCreate "project-go/internal/http-server/handlers/test/test/create"
 	TestGetAll "project-go/internal/http-server/handlers/test/test/getAll"
+	GetAllUserTestResults "project-go/internal/http-server/handlers/test/test/getAllUserResults"
+	TestGetById "project-go/internal/http-server/handlers/test/test/getById"
 	UserCreate "project-go/internal/http-server/handlers/user/create"
 	UserLogin "project-go/internal/http-server/handlers/user/login"
 	"project-go/internal/http-server/repository/store"
@@ -29,6 +32,9 @@ type App struct {
 	GetAllSessions              http.HandlerFunc
 	TestCreate                  http.HandlerFunc
 	TestGetAll                  http.HandlerFunc
+	TestGetById                 http.HandlerFunc
+	TestResultsGetALl           http.HandlerFunc
+	TestResultsAdd              http.HandlerFunc
 	UserCreate                  http.HandlerFunc
 	UserLogin                   http.HandlerFunc
 	CreateCategory              http.HandlerFunc
@@ -56,6 +62,9 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	GetAllSessions := GetAllSessions.New(log, sessionService)
 	TestCreate := TestCreate.New(log, testService)
 	TestGetAll := TestGetAll.New(log, testService)
+	TestGetById := TestGetById.New(log, testService)
+	TestResultsGetAll := GetAllUserTestResults.New(log, testService)
+	AddTestResult := AddTestResult.New(log, testService)
 	CategoryCreate := CategoryCreate.New(log, testCategoryService)
 	CategoryGetAll := CategoryGetAll.New(log, *testCategoryService)
 	UserCreate := UserCreate.New(log, userService)
@@ -67,6 +76,9 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 		GetAllSessions:              GetAllSessions,
 		TestCreate:                  TestCreate,
 		TestGetAll:                  TestGetAll,
+		TestGetById:                 TestGetById,
+		TestResultsAdd:              AddTestResult,
+		TestResultsGetALl:           TestResultsGetAll,
 		CreateCategory:              CategoryCreate,
 		GetAllCategories:            CategoryGetAll,
 		UserCreate:                  UserCreate,

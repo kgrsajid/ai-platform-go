@@ -93,3 +93,12 @@ type OptionResponse struct {
 	OptionText string `json:"optionText"`
 	IsCorrect  bool   `json:"isCorrect"`
 }
+
+type TestResultResponse struct {
+	ID         uint      `json:"id"`
+	Score      int       `json:"score"`
+	MaxScore   int       `json:"maxScore"`
+	Percentage float64   `json:"percentage"`
+	Attempt    int       `json:"attempt"`
+	CreatedAt  time.Time `json:"createdAt"`
+}

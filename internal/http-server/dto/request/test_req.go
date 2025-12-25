@@ -1,5 +1,7 @@
 package req
 
+import "time"
+
 type TestRequest struct {
 	Title       string            `json:"title"`
 	Description string            `json:"description"`
@@ -24,5 +26,23 @@ type TestFilter struct {
 	Limit      int
 	Search     *string
 	Difficulty *string
-	Category   *string
+	Categories []uint
+	MinQ       *int
+	MaxQ       *int
+}
+
+type GetALlTestResultsFilter struct {
+	UserID   uint   `json:"userId" validate:"required,gt=0"`
+	TestID   uint   `json:"testId" validate:"required,gt=0"`
+	Duration string `json:"duration" validate:"required,oneof=day week month"`
+}
+
+type TestResultReq struct {
+	UserId      uint      `json:"userId"`
+	TestId      uint      `json:"testId"`
+	Score       int       `json:"score"`
+	MaxScore    int       `json:"maxScore"`
+	StartedAt   time.Time `json:"startedAt"`
+	FinishedAt  time.Time `json:"finishedAt"`
+	DurationSec int       `json:"durationSec"`
 }

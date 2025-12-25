@@ -76,9 +76,9 @@ type ChatMessage struct {
 
 // Категория
 type Category struct {
-	ID    uint   `gorm:"primaryKey"`
-	Name  string `gorm:"size:100;unique;not null"`
-	Tests []Test `gorm:"many2many:test_categories"`
+	ID    uint   `gorm:"primaryKey" json:"id"`
+	Name  string `gorm:"size:100;unique;not null" json:"name"`
+	Tests []Test `gorm:"many2many:test_categories" json:"tests"`
 }
 
 // Тест
@@ -91,6 +91,7 @@ type Test struct {
 	Tags        pq.StringArray `gorm:"type:text[]"`
 	Questions   []TestQuestion `gorm:"foreignKey:TestID"`
 	CreatedAt   time.Time
+	DurationSec int
 	UpdatedAt   time.Time
 }
 
@@ -108,11 +109,23 @@ type TestResult struct {
 	ID        uint `gorm:"primaryKey"`
 	StudentID uint
 	Student   User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	TestID    uint
-	Test      Test `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Score     int  `gorm:"not null"`
+
+	TestID uint
+	Test   Test `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+
+	Score      int     // набранные баллы
+	MaxScore   int     // максимум
+	Percentage float64 // 0–100
+
+	Attempt int // номер попытки
+
+	StartedAt   time.Time
+	FinishedAt  time.Time
+	DurationSec int
+
 	CreatedAt time.Time
 }
+
 type TestOption struct {
 	ID             uint `gorm:"primaryKey"`
 	TestQuestionID uint

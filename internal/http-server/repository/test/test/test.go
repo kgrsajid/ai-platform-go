@@ -1,10 +1,10 @@
 package test
 
 import (
-	"fmt"
 	req "project-go/internal/http-server/dto/request"
 	res "project-go/internal/http-server/dto/response"
 	"project-go/internal/models"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -46,10 +46,66 @@ func extractIDs(cats []models.Category) []uint {
 
 func (r *TestRepository) GetTestById(testId uint64) (*models.Test, error) {
 	var test *models.Test
-	if err := r.db.Where("id = ?", testId).Find(&test).Error; err != nil {
+	if err := r.db.Where("id = ?", testId).Preload("Questions").Preload("Questions.Options").Preload("Categories").Find(&test).Error; err != nil {
 		return nil, err
 	}
 	return test, nil
+}
+
+func (r *TestRepository) AddTestResult(testReq req.TestResultReq) (*models.TestResult, error) {
+	var lastAttempt models.TestResult
+	r.db.
+		Where("student_id = ? AND test_id = ?", testReq.UserId, testReq.TestId).
+		Order("attempt DESC").
+		First(&lastAttempt)
+
+	newAttempt := 1
+	if lastAttempt.ID != 0 {
+		newAttempt = lastAttempt.Attempt + 1
+	}
+	test := &models.TestResult{
+		StudentID:   testReq.UserId,
+		TestID:      testReq.TestId,
+		Score:       testReq.Score,
+		MaxScore:    testReq.MaxScore,
+		Percentage:  (float64(testReq.Score) / float64(testReq.MaxScore)) * 100,
+		StartedAt:   testReq.StartedAt,
+		FinishedAt:  testReq.FinishedAt,
+		Attempt:     newAttempt,
+		DurationSec: testReq.DurationSec,
+	}
+	if err := r.db.Create(&test).Error; err != nil {
+		return nil, err
+	}
+	return test, nil
+}
+
+func (r *TestRepository) GetAllUserTestResults(filter req.GetALlTestResultsFilter) ([]models.TestResult, error) {
+	var results []models.TestResult
+
+	query := r.db.Model(&models.TestResult{}).
+		Where("student_id = ?", filter.UserID).
+		Where("test_id = ?", filter.TestID)
+
+	// фильтр по дате
+	switch filter.Duration {
+	case "day":
+		from := time.Now().AddDate(0, 0, -1)
+		query = query.Where("created_at >= ?", from)
+	case "week":
+		from := time.Now().AddDate(0, 0, -7)
+		query = query.Where("created_at >= ?", from)
+	case "month":
+		from := time.Now().AddDate(0, -1, 0)
+		query = query.Where("created_at >= ?", from)
+	}
+
+	err := query.Find(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 func (r *TestRepository) GetAllTest(
@@ -71,11 +127,9 @@ func (r *TestRepository) GetAllTest(
 		query = query.Where("(tests.title ILIKE ? OR tags @> ARRAY[?])", like, *filter.Search)
 	}
 
-	if filter.Category != nil && *filter.Category != "" {
-		query = query.
-			Joins("JOIN test_categories tc ON tc.test_id = tests.id").
-			Joins("JOIN categories c ON c.id = tc.category_id").
-			Where("c.name = ?", *filter.Category)
+	if len(filter.Categories) > 0 {
+		query = query.Joins("JOIN test_categories tc ON tc.test_id = tests.id").
+			Where("tc.category_id IN ?", filter.Categories)
 	}
 
 	// COUNT тестов
@@ -95,7 +149,6 @@ func (r *TestRepository) GetAllTest(
 	// Маппим в DTO
 	tests := make([]res.TestWithQuestionsCount, len(testModels))
 	for i, t := range testModels {
-		fmt.Println(t.Categories, t.Description)
 		tests[i] = res.TestWithQuestionsCount{
 			Test:              t,
 			NumberOfQuestions: len(t.Questions),

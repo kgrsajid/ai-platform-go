@@ -10,6 +10,8 @@ type TestRepo interface {
 	CreateTest(test *models.Test) (*models.Test, error)
 	GetAllTest(testFilter req.TestFilter) ([]res.TestWithQuestionsCount, int64, error)
 	GetTestById(testId uint64) (*models.Test, error)
+	AddTestResult(testReq req.TestResultReq) (*models.TestResult, error)
+	GetAllUserTestResults(filter req.GetALlTestResultsFilter) ([]models.TestResult, error)
 }
 
 type QuestionAdd interface {
@@ -36,6 +38,39 @@ func (s *Service) TestCreate(test req.TestRequest) (*models.Test, error) {
 	}
 
 	return createdTest, nil
+}
+
+func (s *Service) AddTestResult(test req.TestResultReq) (*res.TestResultResponse, error) {
+	testResult, err := s.TestRepo.AddTestResult(test)
+	if err != nil {
+		return nil, err
+	}
+	return &res.TestResultResponse{
+		ID:         testResult.ID,
+		Score:      testResult.Score,
+		MaxScore:   testResult.MaxScore,
+		Percentage: testResult.Percentage,
+		Attempt:    testResult.Attempt,
+	}, err
+}
+
+func (s *Service) GetAllUserTestResults(test req.GetALlTestResultsFilter) ([]res.TestResultResponse, error) {
+	testResults, err := s.TestRepo.GetAllUserTestResults(test)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]res.TestResultResponse, 0, len(testResults))
+	for _, val := range testResults {
+		result = append(result, res.TestResultResponse{
+			ID:         val.ID,
+			Score:      val.Score,
+			MaxScore:   val.MaxScore,
+			Percentage: val.Percentage,
+			Attempt:    val.Attempt,
+			CreatedAt:  val.CreatedAt,
+		})
+	}
+	return result, nil
 }
 
 func (s *Service) GetAllTest(testFilter req.TestFilter) ([]res.TestWithQuestionsCount, int64, error) {
