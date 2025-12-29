@@ -6,6 +6,7 @@ import (
 	testcategory "project-go/internal/http-server/repository/test-category"
 	"project-go/internal/http-server/repository/test/question"
 	"project-go/internal/http-server/repository/test/test"
+	"project-go/internal/http-server/repository/test/view"
 	"project-go/internal/http-server/repository/user"
 
 	"gorm.io/gorm"
@@ -18,6 +19,7 @@ type Store struct {
 	TestRepo     *test.TestRepository
 	QuestionRepo *question.QuestionRepository
 	CategoryRepo *testcategory.TestCategoryRepository
+	TestViewRepo *view.TestViewRepo
 }
 
 func NewStore(db *gorm.DB) *Store {
@@ -28,5 +30,6 @@ func NewStore(db *gorm.DB) *Store {
 		TestRepo:     test.NewTestRepo(db),
 		QuestionRepo: question.NewQuestionRepo(db),
 		CategoryRepo: testcategory.New(db),
+		TestViewRepo: view.NewTestView(db),
 	}
 }

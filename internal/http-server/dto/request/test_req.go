@@ -50,3 +50,9 @@ type TestResultReq struct {
 	FinishedAt  time.Time `json:"finishedAt"`
 	DurationSec int       `json:"durationSec"`
 }
+
+// Test View
+
+type TestViewReq struct {
+	TestId uint `json:"testId"`
+}

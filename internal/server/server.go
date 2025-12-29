@@ -36,6 +36,7 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Get("/test/{testId}", app.TestGetById)
 		r.Post("/test/category", app.CreateCategory)
 		r.Get("/test/category", app.GetAllCategories)
+		r.Post("/test/view", app.TestViewAdd)
 	})
 	router.Route("/auth", func(r chi.Router) {
 		r.Post("/register", app.UserCreate)

@@ -9,6 +9,7 @@ import (
 	GetAllSessions "project-go/internal/http-server/handlers/session/getAll"
 	CategoryCreate "project-go/internal/http-server/handlers/test-category/create"
 	CategoryGetAll "project-go/internal/http-server/handlers/test-category/getAll"
+	AddTestView "project-go/internal/http-server/handlers/test/addTestView"
 	AddTestResult "project-go/internal/http-server/handlers/test/test/addResult"
 	TestCreate "project-go/internal/http-server/handlers/test/test/create"
 	TestGetAll "project-go/internal/http-server/handlers/test/test/getAll"
@@ -21,6 +22,7 @@ import (
 	sessionService "project-go/internal/http-server/service/session"
 	testservice "project-go/internal/http-server/service/test"
 	testcategoryservice "project-go/internal/http-server/service/test-category"
+	testviewservice "project-go/internal/http-server/service/test-view"
 	userservice "project-go/internal/http-server/service/user"
 	"project-go/internal/lib/jwt"
 )
@@ -39,6 +41,7 @@ type App struct {
 	UserLogin                   http.HandlerFunc
 	CreateCategory              http.HandlerFunc
 	GetAllCategories            http.HandlerFunc
+	TestViewAdd                 http.HandlerFunc
 }
 
 func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
@@ -49,12 +52,14 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	questionRepo := store.QuestionRepo
 	userRepo := store.UserRepo
 	categoryRepo := store.CategoryRepo
+	testViewRepo := store.TestViewRepo
 	// сервисы
 	chatService := chatservice.New(chatRepo, sessionRepo)
 	sessionService := sessionService.New(sessionRepo)
 	testService := testservice.New(testRepo, questionRepo)
 	userService := userservice.New(userRepo)
 	testCategoryService := testcategoryservice.New(categoryRepo)
+	testViewService := testviewservice.New(testViewRepo)
 	// хендлеры
 	AddChatHandler := chatAdd.New(log, chatService)
 	AddMessageByCreatingSession := addbycreatingsession.New(log, chatService)
@@ -65,10 +70,12 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	TestGetById := TestGetById.New(log, testService)
 	TestResultsGetAll := GetAllUserTestResults.New(log, testService)
 	AddTestResult := AddTestResult.New(log, testService)
+	AddTestView := AddTestView.New(log, testViewService)
 	CategoryCreate := CategoryCreate.New(log, testCategoryService)
 	CategoryGetAll := CategoryGetAll.New(log, *testCategoryService)
 	UserCreate := UserCreate.New(log, userService)
 	UserLogin := UserLogin.New(log, userService, jwt.NewJWTService(jwtKey))
+
 	return &App{
 		AddChatHandler:              AddChatHandler,
 		AddMessageByCreatingSession: AddMessageByCreatingSession,
@@ -83,5 +90,6 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 		GetAllCategories:            CategoryGetAll,
 		UserCreate:                  UserCreate,
 		UserLogin:                   UserLogin,
+		TestViewAdd:                 AddTestView,
 	}
 }

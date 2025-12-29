@@ -39,6 +39,7 @@ func New(dsn string) (*gorm.DB, error) {
 		&models.Test{},
 		&models.TestQuestion{},
 		&models.TestResult{},
+		&models.TestView{},
 		&models.CardHolder{},
 		&models.Card{},
 		&models.Game{},

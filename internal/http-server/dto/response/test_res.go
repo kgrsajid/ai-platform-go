@@ -12,6 +12,7 @@ type TestDetailsResponse struct {
 	Categories  []models.Category  `json:"categories"`
 	Difficulty  string             `json:"difficulty"`
 	Tags        []string           `json:"tags"`
+	ViewCount   int                `json:"viewCount"`
 	Questions   []QuestionResponse `json:"questions"`
 	CreatedAt   time.Time          `json:"createdAt"`
 }
@@ -41,6 +42,7 @@ func ToTestDetailsResponse(t *models.Test) *TestDetailsResponse {
 		Tags:        t.Tags,
 		Questions:   questions,
 		CreatedAt:   t.CreatedAt,
+		ViewCount:   int(t.ViewCount),
 	}
 }
 
@@ -50,6 +52,7 @@ type TestResponse struct {
 	Description       string         `json:"description"`
 	Categories        []TestCategory `json:"categories"`
 	Difficulty        string         `json:"difficulty"`
+	ViewCount         int            `json:"viewCount"`
 	NumberOfQuestions uint           `json:"numberOfQuestion"`
 	Tags              []string       `json:"tags"`
 	CreatedAt         time.Time      `json:"createdAt"`
@@ -69,6 +72,7 @@ func ToTestResponse(t TestWithQuestionsCount) TestResponse {
 		NumberOfQuestions: uint(t.NumberOfQuestions),
 		Description:       t.Description,
 		Categories:        toTestCategories(t.Categories),
+		ViewCount:         int(t.ViewCount),
 	}
 }
 
