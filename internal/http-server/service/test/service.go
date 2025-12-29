@@ -94,6 +94,8 @@ func mapTestRequestToModel(req req.TestRequest) *models.Test {
 		Title:       req.Title,
 		Description: req.Description,
 		Tags:        req.Tags,
+		AuthorID:    req.AuthorId,
+		IsPrivate:   req.IsPrivate,
 		Difficulty:  models.Difficulty(req.Difficulty),
 	}
 	for _, catID := range req.Categories {

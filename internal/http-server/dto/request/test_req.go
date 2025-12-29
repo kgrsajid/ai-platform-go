@@ -6,6 +6,8 @@ type TestRequest struct {
 	Title       string            `json:"title"`
 	Description string            `json:"description"`
 	Tags        []string          `json:"tags"`
+	AuthorId    uint              `json:"authorId"`
+	IsPrivate   bool              `json:"isPrivate"`
 	Categories  []uint            `json:"categories"`
 	Difficulty  string            `json:"difficulty"`
 	Questions   []QuestionRequest `json:"questions"`
@@ -24,6 +26,8 @@ type OptionRequest struct {
 type TestFilter struct {
 	Offset     int
 	Limit      int
+	IsPrivate  *bool
+	UserId     uint
 	Search     *string
 	Difficulty *string
 	Categories []uint

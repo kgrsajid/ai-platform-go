@@ -7,6 +7,7 @@ import (
 	res "project-go/internal/http-server/dto/response"
 	testservice "project-go/internal/http-server/service/test"
 	"project-go/internal/lib/api/response"
+	"project-go/internal/lib/auth"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -26,7 +27,14 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 		)
 		var req req.TestRequest
 		err := render.DecodeJSON(r.Body, &req)
-
+		userId, ok := auth.GetUserID(r)
+		if !ok {
+			log.Error("user id is null")
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, response.Error("user id is null"))
+			return
+		}
+		req.AuthorId = userId
 		if err != nil {
 			log.Error("failed to decode req", slog.String("error", err.Error()))
 			render.Status(r, http.StatusBadRequest)

@@ -90,9 +90,20 @@ type Test struct {
 	Categories  []Category     `gorm:"many2many:test_categories"`
 	Tags        pq.StringArray `gorm:"type:text[]"`
 	Questions   []TestQuestion `gorm:"foreignKey:TestID"`
+	IsPrivate   bool           `gorm:"not null;default:false;index"`
+	AuthorID    uint           `gorm:"not null;index"`
+	Author      User           `gorm:"foreignKey:AuthorID"`
+	ViewCount   uint           `gorm:"default:0"`
 	CreatedAt   time.Time
 	DurationSec int
 	UpdatedAt   time.Time
+}
+
+type TestView struct {
+	ID        uint
+	TestID    uint
+	UserID    uint
+	CreatedAt time.Time
 }
 
 // Вопросы теста

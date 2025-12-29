@@ -8,6 +8,7 @@ import (
 	res "project-go/internal/http-server/dto/response"
 	testservice "project-go/internal/http-server/service/test"
 	"project-go/internal/lib/api/response"
+	"project-go/internal/lib/auth"
 	"strconv"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -30,6 +31,19 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		search := r.URL.Query().Get("search")
 		categoriesParams := r.URL.Query()["categories[]"]
+		isPrivateStr := r.URL.Query().Get("isPrivate")
+		isPrivate, err := strconv.ParseBool(isPrivateStr)
+		if err != nil {
+			// например: false по умолчанию
+			isPrivate = false
+		}
+		userId, ok := auth.GetUserID(r)
+		if !ok {
+			log.Error("user id is null")
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, response.Error("user id is null"))
+			return
+		}
 		minQStr := r.URL.Query().Get("minQ")
 		maxQStr := r.URL.Query().Get("maxQ")
 		var minQ, maxQ *int
@@ -60,6 +74,8 @@ func New(log *slog.Logger, testService *testservice.Service) http.HandlerFunc {
 			Limit:      limit,
 			Offset:     offset,
 			Search:     &search,
+			IsPrivate:  &isPrivate,
+			UserId:     userId,
 			Difficulty: &difficulty,
 			Categories: categories,
 			MinQ:       minQ,

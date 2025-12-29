@@ -121,6 +121,11 @@ func (r *TestRepository) GetAllTest(
 	if filter.Difficulty != nil && *filter.Difficulty != "" {
 		query = query.Where("difficulty = ?", *filter.Difficulty)
 	}
+	if filter.IsPrivate != nil && *filter.IsPrivate {
+		query = query.Where("is_private = true AND author_id = ?", filter.UserId)
+	} else {
+		query = query.Where("is_private = false")
+	}
 
 	if filter.Search != nil && *filter.Search != "" {
 		like := "%" + *filter.Search + "%"
