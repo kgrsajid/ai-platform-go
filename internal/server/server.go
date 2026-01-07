@@ -30,6 +30,7 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Get("/session", app.GetAllSessions)
 		r.Get("/session/{sessionId}", app.GetChatBySessionIdHandler)
 		r.Post("/test", app.TestCreate)
+		r.Put("/test/{testId}", app.TestUpdate)
 		r.Get("/test", app.TestGetAll)
 		r.Post("/test/result", app.TestResultsAdd)
 		r.Get("/test/result/{testId}", app.TestResultsGetALl)
@@ -37,6 +38,8 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Post("/test/category", app.CreateCategory)
 		r.Get("/test/category", app.GetAllCategories)
 		r.Post("/test/view", app.TestViewAdd)
+		r.Get("/card", app.CardGetAll)
+		r.Post("/card", app.CardCreate)
 	})
 	router.Route("/auth", func(r chi.Router) {
 		r.Post("/register", app.UserCreate)

@@ -10,6 +10,7 @@ type TestDetailsResponse struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description"`
 	Categories  []models.Category  `json:"categories"`
+	AuthorId    uint               `json:"authorId"`
 	Difficulty  string             `json:"difficulty"`
 	Tags        []string           `json:"tags"`
 	ViewCount   int                `json:"viewCount"`
@@ -43,6 +44,7 @@ func ToTestDetailsResponse(t *models.Test) *TestDetailsResponse {
 		Questions:   questions,
 		CreatedAt:   t.CreatedAt,
 		ViewCount:   int(t.ViewCount),
+		AuthorId:    t.AuthorID,
 	}
 }
 

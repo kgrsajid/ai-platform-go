@@ -3,6 +3,8 @@ package app
 import (
 	"log/slog"
 	"net/http"
+	CardCreate "project-go/internal/http-server/handlers/card/create"
+	CardGetAll "project-go/internal/http-server/handlers/card/getAll"
 	chatAdd "project-go/internal/http-server/handlers/chat/add"
 	addbycreatingsession "project-go/internal/http-server/handlers/chat/addByCreatingSession"
 	GetChatBySessionId "project-go/internal/http-server/handlers/chat/getBySessionId"
@@ -15,9 +17,11 @@ import (
 	TestGetAll "project-go/internal/http-server/handlers/test/test/getAll"
 	GetAllUserTestResults "project-go/internal/http-server/handlers/test/test/getAllUserResults"
 	TestGetById "project-go/internal/http-server/handlers/test/test/getById"
+	TestUpdate "project-go/internal/http-server/handlers/test/test/updateTest"
 	UserCreate "project-go/internal/http-server/handlers/user/create"
 	UserLogin "project-go/internal/http-server/handlers/user/login"
 	"project-go/internal/http-server/repository/store"
+	cardservice "project-go/internal/http-server/service/card"
 	chatservice "project-go/internal/http-server/service/chat"
 	sessionService "project-go/internal/http-server/service/session"
 	testservice "project-go/internal/http-server/service/test"
@@ -33,6 +37,7 @@ type App struct {
 	GetChatBySessionIdHandler   http.HandlerFunc
 	GetAllSessions              http.HandlerFunc
 	TestCreate                  http.HandlerFunc
+	TestUpdate                  http.HandlerFunc
 	TestGetAll                  http.HandlerFunc
 	TestGetById                 http.HandlerFunc
 	TestResultsGetALl           http.HandlerFunc
@@ -42,6 +47,8 @@ type App struct {
 	CreateCategory              http.HandlerFunc
 	GetAllCategories            http.HandlerFunc
 	TestViewAdd                 http.HandlerFunc
+	CardCreate                  http.HandlerFunc
+	CardGetAll                  http.HandlerFunc
 }
 
 func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
@@ -53,10 +60,12 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	userRepo := store.UserRepo
 	categoryRepo := store.CategoryRepo
 	testViewRepo := store.TestViewRepo
+	cardRepo := store.CardRepo
 	// сервисы
 	chatService := chatservice.New(chatRepo, sessionRepo)
 	sessionService := sessionService.New(sessionRepo)
 	testService := testservice.New(testRepo, questionRepo)
+	cardService := cardservice.New(cardRepo)
 	userService := userservice.New(userRepo)
 	testCategoryService := testcategoryservice.New(categoryRepo)
 	testViewService := testviewservice.New(testViewRepo)
@@ -66,6 +75,7 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	GetChatBySessionIdHandler := GetChatBySessionId.New(log, chatService)
 	GetAllSessions := GetAllSessions.New(log, sessionService)
 	TestCreate := TestCreate.New(log, testService)
+	TestUpdate := TestUpdate.New(log, testService)
 	TestGetAll := TestGetAll.New(log, testService)
 	TestGetById := TestGetById.New(log, testService)
 	TestResultsGetAll := GetAllUserTestResults.New(log, testService)
@@ -73,6 +83,8 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	AddTestView := AddTestView.New(log, testViewService)
 	CategoryCreate := CategoryCreate.New(log, testCategoryService)
 	CategoryGetAll := CategoryGetAll.New(log, *testCategoryService)
+	CardCreate := CardCreate.New(log, cardService)
+	CardGetAll := CardGetAll.New(log, cardService)
 	UserCreate := UserCreate.New(log, userService)
 	UserLogin := UserLogin.New(log, userService, jwt.NewJWTService(jwtKey))
 
@@ -82,12 +94,15 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 		GetChatBySessionIdHandler:   GetChatBySessionIdHandler,
 		GetAllSessions:              GetAllSessions,
 		TestCreate:                  TestCreate,
+		TestUpdate:                  TestUpdate,
 		TestGetAll:                  TestGetAll,
 		TestGetById:                 TestGetById,
 		TestResultsAdd:              AddTestResult,
 		TestResultsGetALl:           TestResultsGetAll,
 		CreateCategory:              CategoryCreate,
 		GetAllCategories:            CategoryGetAll,
+		CardCreate:                  CardCreate,
+		CardGetAll:                  CardGetAll,
 		UserCreate:                  UserCreate,
 		UserLogin:                   UserLogin,
 		TestViewAdd:                 AddTestView,

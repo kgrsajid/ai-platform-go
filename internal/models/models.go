@@ -76,9 +76,10 @@ type ChatMessage struct {
 
 // Категория
 type Category struct {
-	ID    uint   `gorm:"primaryKey" json:"id"`
-	Name  string `gorm:"size:100;unique;not null" json:"name"`
-	Tests []Test `gorm:"many2many:test_categories" json:"tests"`
+	ID          uint         `gorm:"primaryKey" json:"id"`
+	Name        string       `gorm:"size:100;unique;not null" json:"name"`
+	Tests       []Test       `gorm:"many2many:test_categories" json:"tests"`
+	CardHolders []CardHolder `gorm:"many2many:card_categories" json:"card_holders"`
 }
 
 // Тест
@@ -95,7 +96,6 @@ type Test struct {
 	Author      User           `gorm:"foreignKey:AuthorID"`
 	ViewCount   uint           `gorm:"default:0"`
 	CreatedAt   time.Time
-	DurationSec int
 	UpdatedAt   time.Time
 }
 
@@ -108,11 +108,12 @@ type TestView struct {
 
 // Вопросы теста
 type TestQuestion struct {
-	ID       uint `gorm:"primaryKey"`
-	TestID   uint
-	Test     Test         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Question string       `gorm:"type:text;not null"`
-	Options  []TestOption `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID          uint `gorm:"primaryKey"`
+	TestID      uint
+	Test        Test   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Question    string `gorm:"type:text;not null"`
+	DurationSec int
+	Options     []TestOption `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // Результаты теста
@@ -148,13 +149,16 @@ type TestOption struct {
 
 // Карточки
 type CardHolder struct {
-	ID        uint `gorm:"primaryKey"`
-	StudentID uint
-	Student   User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Title     string `gorm:"type:text;not null"`
-	Cards     []Card
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uint `gorm:"primaryKey"`
+	AuthorID    uint
+	Author      User           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Title       string         `gorm:"type:text;not null"`
+	Description string         `gorm:"type:text"`
+	Tags        pq.StringArray `gorm:"type:text[]"`
+	Categories  []Category     `gorm:"many2many:card_categories"`
+	Cards       []Card
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Card struct {

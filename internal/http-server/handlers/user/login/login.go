@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	req "project-go/internal/http-server/dto/request"
+	res "project-go/internal/http-server/dto/response"
 	userservice "project-go/internal/http-server/service/user"
 	"project-go/internal/lib/api/response"
 	"project-go/internal/lib/jwt"
@@ -20,7 +21,8 @@ type UserFindByEmail interface {
 
 type Response struct {
 	response.Response
-	Token string `json:"token"`
+	Token string           `json:"token"`
+	User  res.ResponseUser `json:"user"`
 }
 
 func New(log *slog.Logger, userservice *userservice.Service, jwtService *jwt.JWTService) http.HandlerFunc {
@@ -69,6 +71,12 @@ func New(log *slog.Logger, userservice *userservice.Service, jwtService *jwt.JWT
 		render.JSON(w, r, Response{
 			Response: response.OK(),
 			Token:    token,
+			User: res.ResponseUser{
+				ID:    FoundUser.ID,
+				Email: FoundUser.Email,
+				Name:  FoundUser.Name,
+				Role:  FoundUser.Role,
+			},
 		})
 	}
 }

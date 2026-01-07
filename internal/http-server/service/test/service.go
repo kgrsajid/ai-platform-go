@@ -8,6 +8,7 @@ import (
 
 type TestRepo interface {
 	CreateTest(test *models.Test) (*models.Test, error)
+	UpdateTest(test *models.Test) (*models.Test, error)
 	GetAllTest(testFilter req.TestFilter) ([]res.TestWithQuestionsCount, int64, error)
 	GetTestById(testId uint64) (*models.Test, error)
 	AddTestResult(testReq req.TestResultReq) (*models.TestResult, error)
@@ -38,6 +39,16 @@ func (s *Service) TestCreate(test req.TestRequest) (*models.Test, error) {
 	}
 
 	return createdTest, nil
+}
+
+func (s *Service) TestUpdate(test req.TestRequest, testId uint) (*models.Test, error) {
+	testModel := mapTestRequestToModel(test)
+	testModel.ID = testId
+	updatedTest, err := s.TestRepo.UpdateTest(testModel)
+	if err != nil {
+		return nil, err
+	}
+	return updatedTest, nil
 }
 
 func (s *Service) AddTestResult(test req.TestResultReq) (*res.TestResultResponse, error) {

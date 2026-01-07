@@ -36,6 +36,76 @@ func (r *TestRepository) CreateTest(test *models.Test) (*models.Test, error) {
 	return test, nil
 }
 
+func (r *TestRepository) UpdateTest(test *models.Test) (*models.Test, error) {
+	tx := r.db.Begin()
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	// 1️⃣ Обновляем основные поля теста
+	if err := tx.Model(&models.Test{}).
+		Where("id = ?", test.ID).
+		Updates(map[string]interface{}{
+			"title":       test.Title,
+			"description": test.Description,
+			"difficulty":  test.Difficulty,
+			"is_private":  test.IsPrivate,
+		}).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 2️⃣ Загружаем категории по ID
+	var categories []models.Category
+	if len(test.Categories) > 0 {
+		var categoryIDs []uint
+		for _, c := range test.Categories {
+			categoryIDs = append(categoryIDs, c.ID)
+		}
+
+		if err := tx.
+			Where("id IN ?", categoryIDs).
+			Find(&categories).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+	// 3️⃣ Обновляем связь many2many
+	if err := tx.
+		Model(test).
+		Association("Categories").
+		Replace(categories); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	if err := tx.
+		Where("test_id = ?", test.ID).
+		Delete(&models.TestQuestion{}).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	for i := range test.Questions {
+		test.Questions[i].TestID = test.ID
+		for j := range test.Questions[i].Options {
+			test.Questions[i].Options[j].TestQuestionID = test.Questions[i].ID
+		}
+	}
+
+	if len(test.Questions) > 0 {
+		if err := tx.Create(&test.Questions).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+	// 5️⃣ Commit
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	return test, nil
+}
+
 func extractIDs(cats []models.Category) []uint {
 	ids := make([]uint, len(cats))
 	for i, c := range cats {
@@ -129,7 +199,15 @@ func (r *TestRepository) GetAllTest(
 
 	if filter.Search != nil && *filter.Search != "" {
 		like := "%" + *filter.Search + "%"
-		query = query.Where("(tests.title ILIKE ? OR tags @> ARRAY[?])", like, *filter.Search)
+		query = query.Where(`
+			tests.title ILIKE ?
+			OR EXISTS (
+				SELECT 1
+				FROM unnest(tags) AS tag
+				WHERE tag ILIKE ?
+			)
+		`, like, like)
+
 	}
 
 	if len(filter.Categories) > 0 {
