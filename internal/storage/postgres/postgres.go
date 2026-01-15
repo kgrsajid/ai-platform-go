@@ -30,7 +30,6 @@ func New(dsn string) (*gorm.DB, error) {
 	if err != nil {
 		log.Fatal("Failed to create role_enum:", err)
 	}
-
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.TeacherStudent{},

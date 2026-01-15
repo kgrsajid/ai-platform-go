@@ -9,6 +9,8 @@ import (
 type CardRepository interface {
 	CreateCardHolder(card *models.CardHolder) (*models.CardHolder, error)
 	GetAll(filter *req.CardFilter) ([]models.CardHolder, int64, error)
+	GetCardsByCardHolderId(cardHolderId uint) (*models.CardHolder, error)
+	UpdateCard(cardholder *models.CardHolder) (*models.CardHolder, error)
 }
 type Service struct {
 	CardRepository CardRepository
@@ -29,12 +31,30 @@ func (s *Service) CreateCardHolder(card req.CardHolderRequest) (*res.CardHolderD
 	return toCardHolderDetailResponse(createdCardHolder), nil
 }
 
+func (s *Service) UpdateCardHolder(card req.CardHolderRequest, cardId uint) (*res.CardHolderDetailResponse, error) {
+	modelsCard := toCardHolderModels(card)
+	modelsCard.ID = cardId
+	updatedCardHolder, err := s.CardRepository.UpdateCard(&modelsCard)
+	if err != nil {
+		return nil, err
+	}
+	return toCardHolderDetailResponse(updatedCardHolder), nil
+}
+
 func (s *Service) GetAll(cardFilter req.CardFilter) ([]res.CardHolderResponse, int64, error) {
 	cardHolderModels, total, err := s.CardRepository.GetAll(&cardFilter)
 	if err != nil {
 		return nil, 0, err
 	}
 	return toCardHolderResponse(cardHolderModels), total, nil
+}
+
+func (s *Service) GetCardsByCardHolderId(id uint) (*res.CardHolderDetailResponse, error) {
+	cardHolder, err := s.CardRepository.GetCardsByCardHolderId(id)
+	if err != nil {
+		return nil, err
+	}
+	return toCardHolderDetailResponse(cardHolder), nil
 }
 
 func toCardHolderResponse(cardHolderModels []models.CardHolder) []res.CardHolderResponse {
@@ -55,13 +75,19 @@ func toCardHolderResponse(cardHolderModels []models.CardHolder) []res.CardHolder
 }
 
 func toCardHolderModels(cardHolder req.CardHolderRequest) models.CardHolder {
-	return models.CardHolder{
+	card := models.CardHolder{
 		AuthorID:    *cardHolder.AuthorID,
 		Title:       cardHolder.Title,
 		Description: *cardHolder.Description,
 		Tags:        cardHolder.Tags,
 		Cards:       toCardModels(cardHolder.Cards),
 	}
+	for _, catID := range cardHolder.Categories {
+		card.Categories = append(card.Categories, models.Category{
+			ID: catID,
+		})
+	}
+	return card
 }
 
 func toCardModels(cards []req.CardRequest) []models.Card {
@@ -93,6 +119,7 @@ func toCardResponse(cards []models.Card) []res.CardResponse {
 
 	for _, value := range cards {
 		newCards = append(newCards, res.CardResponse{
+			ID:       value.ID,
 			Question: value.Question,
 			Answer:   value.Answer,
 		})

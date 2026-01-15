@@ -16,7 +16,7 @@ import (
 
 type Response struct {
 	response.Response
-	Data res.PaginationResponse[res.CardHolderResponse]
+	Data res.PaginationResponse[res.CardHolderResponse] `json:"data"`
 }
 
 func New(log *slog.Logger, cardService *cardservice.Service) http.HandlerFunc {

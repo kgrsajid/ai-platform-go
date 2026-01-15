@@ -9,6 +9,9 @@ type TestCategory struct {
 
 func ToCategoryResponse(categories []models.Category) []TestCategory {
 	var newCategories []TestCategory
+	if categories == nil {
+		return newCategories
+	}
 	for _, value := range categories {
 		newCategories = append(newCategories, TestCategory{
 			ID:   value.ID,

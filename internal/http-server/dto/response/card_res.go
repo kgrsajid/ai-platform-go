@@ -12,7 +12,7 @@ type CardHolderDetailResponse struct {
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
 	Tags        pq.StringArray `json:"tags"`
-	Categories  []TestCategory `json:"cateogires"`
+	Categories  []TestCategory `json:"categories"`
 	Cards       []CardResponse `json:"cards"`
 	CreatedAt   time.Time      `json:"createdAt"`
 }
@@ -23,7 +23,7 @@ type CardHolderResponse struct {
 	Title             string         `json:"title"`
 	Description       string         `json:"description"`
 	Tags              pq.StringArray `json:"tags"`
-	Categories        []TestCategory `json:"cateogires"`
+	Categories        []TestCategory `json:"categories"`
 	NumberOfQuestions int            `json:"numberOfQuestions"`
 	CreatedAt         time.Time      `json:"createdAt"`
 }
@@ -34,6 +34,7 @@ type CardsWithTotal struct {
 }
 
 type CardResponse struct {
+	ID       uint   `json:"id"`
 	Question string `json:"question"`
 	Answer   string `json:"answer"`
 }

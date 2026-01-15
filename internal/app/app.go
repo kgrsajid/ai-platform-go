@@ -5,6 +5,8 @@ import (
 	"net/http"
 	CardCreate "project-go/internal/http-server/handlers/card/create"
 	CardGetAll "project-go/internal/http-server/handlers/card/getAll"
+	CardGetById "project-go/internal/http-server/handlers/card/getById"
+	CardUpdate "project-go/internal/http-server/handlers/card/update"
 	chatAdd "project-go/internal/http-server/handlers/chat/add"
 	addbycreatingsession "project-go/internal/http-server/handlers/chat/addByCreatingSession"
 	GetChatBySessionId "project-go/internal/http-server/handlers/chat/getBySessionId"
@@ -49,6 +51,8 @@ type App struct {
 	TestViewAdd                 http.HandlerFunc
 	CardCreate                  http.HandlerFunc
 	CardGetAll                  http.HandlerFunc
+	CardGetById                 http.HandlerFunc
+	CardUpdate                  http.HandlerFunc
 }
 
 func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
@@ -85,6 +89,8 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	CategoryGetAll := CategoryGetAll.New(log, *testCategoryService)
 	CardCreate := CardCreate.New(log, cardService)
 	CardGetAll := CardGetAll.New(log, cardService)
+	CardGetById := CardGetById.New(log, cardService)
+	CardUpdate := CardUpdate.New(log, cardService)
 	UserCreate := UserCreate.New(log, userService)
 	UserLogin := UserLogin.New(log, userService, jwt.NewJWTService(jwtKey))
 
@@ -103,6 +109,8 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 		GetAllCategories:            CategoryGetAll,
 		CardCreate:                  CardCreate,
 		CardGetAll:                  CardGetAll,
+		CardGetById:                 CardGetById,
+		CardUpdate:                  CardUpdate,
 		UserCreate:                  UserCreate,
 		UserLogin:                   UserLogin,
 		TestViewAdd:                 AddTestView,

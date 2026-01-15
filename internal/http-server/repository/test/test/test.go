@@ -51,6 +51,7 @@ func (r *TestRepository) UpdateTest(test *models.Test) (*models.Test, error) {
 			"description": test.Description,
 			"difficulty":  test.Difficulty,
 			"is_private":  test.IsPrivate,
+			"tags":        test.Tags,
 		}).Error; err != nil {
 		tx.Rollback()
 		return nil, err

@@ -8,6 +8,7 @@ type CardHolderRequest struct {
 	Tags        pq.StringArray `json:"tags"`
 	Categories  []uint         `json:"categories"`
 	AuthorID    *uint
+	ID          *uint
 	Cards       []CardRequest `json:"cards"`
 }
 

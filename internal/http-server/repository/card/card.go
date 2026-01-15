@@ -1,6 +1,7 @@
 package card
 
 import (
+	"fmt"
 	req "project-go/internal/http-server/dto/request"
 	"project-go/internal/models"
 
@@ -18,23 +19,31 @@ func New(db *gorm.DB) *CardRepository {
 }
 
 func (r *CardRepository) CreateCardHolder(card *models.CardHolder) (*models.CardHolder, error) {
-	var categories []uint
-	var resCategory []models.Category
+	var categories []models.Category
 	for _, c := range card.Categories {
-		categories = append(categories, c.ID)
+		categories = append(categories, models.Category{
+			ID: c.ID,
+		})
 	}
 	if len(categories) > 0 {
-		if err := r.db.Where("id IN ?", categories).Find(&resCategory).Error; err != nil {
+		if err := r.db.Where("id IN ?", extractIDs(categories)).Find(&categories).Error; err != nil {
 			return nil, err
 		}
 	}
-	card.Categories = resCategory
-
+	card.Categories = categories
 	if err := r.db.Create(card).Error; err != nil {
 		return nil, err
 	}
 
 	return card, nil
+}
+
+func extractIDs(cats []models.Category) []uint {
+	ids := make([]uint, len(cats))
+	for i, c := range cats {
+		ids[i] = c.ID
+	}
+	return ids
 }
 
 func (r *CardRepository) GetAll(filter *req.CardFilter) ([]models.CardHolder, int64, error) {
@@ -87,15 +96,80 @@ func (r *CardRepository) CreateCard(card *models.Card) (*models.Card, error) {
 	return card, nil
 }
 
-func (r *CardRepository) GetCardsByCardHolderId(cardHolderId uint) ([]models.Card, error) {
-	var cards []models.Card
-	if err := r.db.
-		Preload("CardHolder").
-		Preload("CardHolder.Student").
-		Where("cardHolder_id = ?", cardHolderId).
+func (r *CardRepository) UpdateCard(cardholder *models.CardHolder) (*models.CardHolder, error) {
+	cx := r.db.Begin()
+
+	if cx.Error != nil {
+		return nil, cx.Error
+	}
+
+	fmt.Println("cardholder", cardholder.ID)
+
+	if err := cx.Model(&models.CardHolder{}).
+		Where("id = ?", cardholder.ID).
+		Updates(map[string]interface{}{
+			"title":       cardholder.Title,
+			"description": cardholder.Description,
+			"tags":        cardholder.Tags,
+		}).Error; err != nil {
+		cx.Rollback()
+		return nil, err
+	}
+	var categories []models.Category
+	if len(cardholder.Categories) > 0 {
+		var categoryIDs []uint
+		for _, c := range cardholder.Categories {
+			categoryIDs = append(categoryIDs, c.ID)
+		}
+
+		if err := cx.
+			Where("id IN ?", categoryIDs).
+			Find(&categories).Error; err != nil {
+			cx.Rollback()
+			return nil, err
+		}
+	}
+
+	if err := cx.
+		Model(&models.CardHolder{ID: cardholder.ID}).
+		Association("Categories").
+		Replace(categories); err != nil {
+		cx.Rollback()
+		return nil, err
+	}
+	if err := cx.
+		Where("card_holder_id = ?", cardholder.ID).
+		Delete(&models.Card{}).Error; err != nil {
+		cx.Rollback()
+		return nil, err
+	}
+	for i := range cardholder.Cards {
+		cardholder.Cards[i].CardHolderID = cardholder.ID
+	}
+
+	if len(cardholder.Cards) > 0 {
+		if err := cx.Create(&cardholder.Cards).Error; err != nil {
+			cx.Rollback()
+			return nil, err
+		}
+	}
+	// 5️⃣ Commit
+	if err := cx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	return cardholder, nil
+
+}
+
+func (r *CardRepository) GetCardsByCardHolderId(cardHolderId uint) (*models.CardHolder, error) {
+	var cards models.CardHolder
+	if err := r.db.Where("id = ?", cardHolderId).
+		Preload("Categories").
+		Preload("Cards").
 		Order("created_at DESC").
 		Find(&cards).Error; err != nil {
 		return nil, err
 	}
-	return cards, nil
+	return &cards, nil
 }

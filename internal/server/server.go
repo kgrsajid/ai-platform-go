@@ -40,6 +40,8 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Post("/test/view", app.TestViewAdd)
 		r.Get("/card", app.CardGetAll)
 		r.Post("/card", app.CardCreate)
+		r.Get("/card/{cardId}", app.CardGetById)
+		r.Put("/card/{cardId}", app.CardUpdate)
 	})
 	router.Route("/auth", func(r chi.Router) {
 		r.Post("/register", app.UserCreate)
