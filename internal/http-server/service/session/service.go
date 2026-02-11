@@ -8,6 +8,7 @@ type Service struct {
 
 type SessionGetAll interface {
 	GetAllSessions(userId uint) ([]models.SessionHistory, error)
+	CreateSession(session *models.SessionHistory) (*models.SessionHistory, error)
 }
 
 func New(sessionRepo SessionGetAll) *Service {
@@ -22,4 +23,17 @@ func (s *Service) GetAllSessions(userId uint) ([]models.SessionHistory, error) {
 		return nil, err
 	}
 	return sessions, nil
+}
+
+func (s *Service) CreateSession(userID uint) (*models.SessionHistory, error) {
+	session := &models.SessionHistory{
+		StudentID: userID,
+		Title:     "Dragon history",
+	}
+	newSession, err := s.sessionRepo.CreateSession(session)
+	if err != nil {
+		return nil, err
+	}
+
+	return newSession, nil
 }

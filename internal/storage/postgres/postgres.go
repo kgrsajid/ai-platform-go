@@ -22,9 +22,17 @@ func New(dsn string) (*gorm.DB, error) {
 				IF NOT EXISTS (
 						SELECT 1 FROM pg_type WHERE typname = 'difficulty_enum'
 				) THEN
-						CREATE TYPE difficulty_enum AS ENUM ('easy','medium','hard');
+						CREATE TYPE difficulty_enum AS ENUM ('easy', 'medium', 'hard');
 				END IF;
-		END$$;
+
+				IF NOT EXISTS (
+						SELECT 1 FROM pg_type WHERE typname = 'status_enum'
+				) THEN
+						CREATE TYPE status_enum AS ENUM ('pending', 'success', 'error');
+				END IF;
+		END
+		$$;
+
 	`).Error
 
 	if err != nil {

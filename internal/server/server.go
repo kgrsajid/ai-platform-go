@@ -26,7 +26,9 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 	router.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
 		r.Post("/chat", app.AddChatHandler)
+		r.Put("/chat/retry/{sessionId}", app.RetryLastMessage)
 		r.Post("/chat/new", app.AddMessageByCreatingSession)
+		r.Post("/session", app.CreateSession)
 		r.Get("/session", app.GetAllSessions)
 		r.Get("/session/{sessionId}", app.GetChatBySessionIdHandler)
 		r.Post("/test", app.TestCreate)
@@ -43,6 +45,7 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Get("/card/{cardId}", app.CardGetById)
 		r.Put("/card/{cardId}", app.CardUpdate)
 	})
+	router.Get("/message", app.WSAddMessage.ServeWS)
 	router.Route("/auth", func(r chi.Router) {
 		r.Post("/register", app.UserCreate)
 		r.Post("/login", app.UserLogin)

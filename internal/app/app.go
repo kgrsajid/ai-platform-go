@@ -3,6 +3,7 @@ package app
 import (
 	"log/slog"
 	"net/http"
+	client "project-go/internal/http-server/client/chat"
 	CardCreate "project-go/internal/http-server/handlers/card/create"
 	CardGetAll "project-go/internal/http-server/handlers/card/getAll"
 	CardGetById "project-go/internal/http-server/handlers/card/getById"
@@ -10,6 +11,8 @@ import (
 	chatAdd "project-go/internal/http-server/handlers/chat/add"
 	addbycreatingsession "project-go/internal/http-server/handlers/chat/addByCreatingSession"
 	GetChatBySessionId "project-go/internal/http-server/handlers/chat/getBySessionId"
+	RetryLastMessage "project-go/internal/http-server/handlers/chat/retry"
+	CreateSession "project-go/internal/http-server/handlers/session/create"
 	GetAllSessions "project-go/internal/http-server/handlers/session/getAll"
 	CategoryCreate "project-go/internal/http-server/handlers/test-category/create"
 	CategoryGetAll "project-go/internal/http-server/handlers/test-category/getAll"
@@ -30,6 +33,8 @@ import (
 	testcategoryservice "project-go/internal/http-server/service/test-category"
 	testviewservice "project-go/internal/http-server/service/test-view"
 	userservice "project-go/internal/http-server/service/user"
+	websocket "project-go/internal/http-server/websocket/chat"
+	"project-go/internal/lib/auth"
 	"project-go/internal/lib/jwt"
 )
 
@@ -38,6 +43,8 @@ type App struct {
 	AddMessageByCreatingSession http.HandlerFunc
 	GetChatBySessionIdHandler   http.HandlerFunc
 	GetAllSessions              http.HandlerFunc
+	CreateSession               http.HandlerFunc
+	RetryLastMessage            http.HandlerFunc
 	TestCreate                  http.HandlerFunc
 	TestUpdate                  http.HandlerFunc
 	TestGetAll                  http.HandlerFunc
@@ -53,9 +60,11 @@ type App struct {
 	CardGetAll                  http.HandlerFunc
 	CardGetById                 http.HandlerFunc
 	CardUpdate                  http.HandlerFunc
+
+	WSAddMessage *websocket.Handler
 }
 
-func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
+func New(log *slog.Logger, store *store.Store, jwtKey string, aiUrl string) *App {
 	// репозитории
 	chatRepo := store.ChatRepo
 	sessionRepo := store.SessionRepo
@@ -65,8 +74,15 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	categoryRepo := store.CategoryRepo
 	testViewRepo := store.TestViewRepo
 	cardRepo := store.CardRepo
+
+	//client
+	aiChat := client.NewAIClient(aiUrl)
+
+	//web socket
+	hub := websocket.NewHub()
+	authService := auth.New(jwtKey)
 	// сервисы
-	chatService := chatservice.New(chatRepo, sessionRepo)
+	chatService := chatservice.New(chatRepo, sessionRepo, aiChat)
 	sessionService := sessionService.New(sessionRepo)
 	testService := testservice.New(testRepo, questionRepo)
 	cardService := cardservice.New(cardRepo)
@@ -78,6 +94,8 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	AddMessageByCreatingSession := addbycreatingsession.New(log, chatService)
 	GetChatBySessionIdHandler := GetChatBySessionId.New(log, chatService)
 	GetAllSessions := GetAllSessions.New(log, sessionService)
+	CreateSession := CreateSession.New(log, sessionService)
+	RetryLastMessage := RetryLastMessage.New(log, chatService)
 	TestCreate := TestCreate.New(log, testService)
 	TestUpdate := TestUpdate.New(log, testService)
 	TestGetAll := TestGetAll.New(log, testService)
@@ -94,11 +112,15 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 	UserCreate := UserCreate.New(log, userService)
 	UserLogin := UserLogin.New(log, userService, jwt.NewJWTService(jwtKey))
 
+	wsHandler := websocket.NewHandler(hub, authService, chatService)
+
 	return &App{
 		AddChatHandler:              AddChatHandler,
 		AddMessageByCreatingSession: AddMessageByCreatingSession,
 		GetChatBySessionIdHandler:   GetChatBySessionIdHandler,
 		GetAllSessions:              GetAllSessions,
+		CreateSession:               CreateSession,
+		RetryLastMessage:            RetryLastMessage,
 		TestCreate:                  TestCreate,
 		TestUpdate:                  TestUpdate,
 		TestGetAll:                  TestGetAll,
@@ -114,5 +136,6 @@ func New(log *slog.Logger, store *store.Store, jwtKey string) *App {
 		UserCreate:                  UserCreate,
 		UserLogin:                   UserLogin,
 		TestViewAdd:                 AddTestView,
+		WSAddMessage:                wsHandler,
 	}
 }

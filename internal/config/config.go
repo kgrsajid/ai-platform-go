@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Env        string `yaml:"env" env:"ENV" env-default: "local"`
-	Dsn        string `yaml:"dsn" env-required:"true"`
-	JWT_Key    string `yaml:"jwt_key"`
-	HTTPServer `yaml:"http_server"`
+	Env         string `yaml:"env" env:"ENV" env-default: "local"`
+	Dsn         string `yaml:"dsn" env-required:"true"`
+	JWT_Key     string `yaml:"jwt_key"`
+	AI_Base_Url string `yaml:"ai_base_url"`
+	HTTPServer  `yaml:"http_server"`
 }
 
 type HTTPServer struct {

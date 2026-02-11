@@ -25,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 	store := store.NewStore(db)
-	app := app.New(log, store, cfg.JWT_Key)
+	app := app.New(log, store, cfg.JWT_Key, cfg.AI_Base_Url)
 	router := server.NewRouter(app, log, store, cfg.JWT_Key)
 	handler := cors.CORSMiddleware(router)
 	log.Info("starting server", slog.String("address", cfg.Address))

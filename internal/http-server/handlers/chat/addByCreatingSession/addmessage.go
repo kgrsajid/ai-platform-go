@@ -41,8 +41,8 @@ func New(log *slog.Logger, service *chatservice.Service) http.HandlerFunc {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-
-		chat, err := service.AddMessageByCreatingSession(userID, req.Message)
+		ctx := r.Context()
+		chat, err := service.AddMessageByCreatingSession(ctx, userID, req.Message)
 		if err != nil {
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error(err.Error()))

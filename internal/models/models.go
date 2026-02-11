@@ -9,10 +9,18 @@ import (
 
 type Role string
 
+type Status string
+
 const (
 	Admin   Role = "admin"
 	Teacher Role = "teacher"
 	Student Role = "student"
+)
+
+const (
+	Pending Status = "pending"
+	Success Status = "success"
+	Error   Status = "error"
 )
 
 type Difficulty string
@@ -68,6 +76,7 @@ type ChatMessage struct {
 	// "user" или "bot"
 	Role string `gorm:"type:varchar(10)"`
 
+	Status Status `gorm:type:status_enum;not_null;default:'success'`
 	// Сам текст сообщения
 	Content string `gorm:"type:text"`
 
