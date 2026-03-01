@@ -20,6 +20,12 @@ func New(dsn string) (*gorm.DB, error) {
 		DO $$
 		BEGIN
 				IF NOT EXISTS (
+						SELECT 1 FROM pg_type WHERE typname = 'role_enum'
+				) THEN
+						CREATE TYPE role_enum AS ENUM ('admin', 'teacher', 'student');
+				END IF;
+
+				IF NOT EXISTS (
 						SELECT 1 FROM pg_type WHERE typname = 'difficulty_enum'
 				) THEN
 						CREATE TYPE difficulty_enum AS ENUM ('easy', 'medium', 'hard');

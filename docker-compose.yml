@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    container_name: go-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: go-project-db
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d go-project-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: go-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8082:8080"
+    environment:
+      CONFIG_PATH: ./config/docker.yaml
+    restart: always
+  # frontend: 
+  #   image: ai-educator-front
+  #   container_name: ai-educator-front-container
+  #   ports: 
+  #   - "3000:5173"
+  #   restart: always
+volumes:
+  db_data:

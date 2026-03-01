@@ -1,0 +1,46 @@
+name: CI/CD Backend
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+
+      - name: Build and Test
+        run: |
+          go mod download
+          go test ./...
+          go build -o myapp ./cmd/server/main.go
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: |
+          docker compose -f docker-compose.yml build
+
+      # 6️⃣ Поднимаем контейнеры через Docker Compose (опционально, для теста)
+      # Если на проде — это не нужно, а только билд образа
+      - name: Start services
+        run: |
+          docker compose -f docker-compose.yml up -d
+
+      # 7️⃣ Останавливаем контейнеры после теста (чтобы runner не висел)
+      - name: Stop services
+        run: |
+          docker compose -f docker-compose.yml down
