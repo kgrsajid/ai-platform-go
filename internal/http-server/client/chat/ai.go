@@ -55,7 +55,7 @@ func (a *aiClient) SendMessage(
 ) (*res.AIResponse, error) {
 
 	body, err := json.Marshal(req.AiRequest{
-		UserID:   string(userID),
+		UserID:   strconv.FormatUint(uint64(userID), 10),
 		Message:  message,
 		Language: language,
 	})
