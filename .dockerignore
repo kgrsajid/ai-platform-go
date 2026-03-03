@@ -1,4 +1,3 @@
 docker-compose.yml
 Makefile
 config/local.yaml
-config/docker.yaml
