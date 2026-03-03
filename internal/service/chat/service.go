@@ -30,6 +30,7 @@ type Service struct {
 	aiAPI       client.AIClient
 }
 
+
 func New(chatRepo ChatRepository, sessionRepo SessionRepository, aiAPI client.AIClient) *Service {
 	return &Service{
 		chatRepo:    chatRepo,
@@ -93,10 +94,10 @@ func (s *Service) AddMessage(ctx context.Context, userID, sessionID uint, messag
 	// 2️⃣ Запускаем генерацию тайтла параллельно с ответом ИИ (только для первого сообщения)
 	titleCh := make(chan string, 1)
 	isFirstMessage := false
-	if existing, countErr := s.chatRepo.GetChatBySessionId(sessionID); countErr == nil && len(existing) == 1 && s.aiAPi != nil {
+	if existing, countErr := s.chatRepo.GetChatBySessionId(sessionID); countErr == nil && len(existing) == 1 && s.aiAPI != nil {
 		isFirstMessage = true
 		go func() {
-			title, err := s.aiAPi.GenerateTitle(context.Background(), message, "ru")
+			title, err := s.aiAPI.GenerateTitle(context.Background(), message, "ru")
 			if err == nil && title != "" {
 				titleCh <- title
 			} else {
