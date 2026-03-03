@@ -1,0 +1,16 @@
+env: "local"
+dsn: "postgresql://user:password@localhost:5432/dbname?sslmode=disable"
+jwt_key: "your-jwt-secret"
+ai_base_url: "http://localhost:8000"
+email:
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  username: "your@gmail.com"
+  password: "your-app-password"
+  from: "your@gmail.com"
+http_server:
+  address: "localhost:8082"
+  timeout: 60s
+  idle_timeout: 60s
+  user: "user"
+  password: "yourpass"

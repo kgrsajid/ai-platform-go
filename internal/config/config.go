@@ -9,11 +9,20 @@ import (
 )
 
 type Config struct {
-	Env         string `yaml:"env" env:"ENV" env-default: "local"`
-	Dsn         string `yaml:"dsn" env-required:"true"`
-	JWT_Key     string `yaml:"jwt_key"`
-	AI_Base_Url string `yaml:"ai_base_url"`
+	Env         string      `yaml:"env" env:"ENV" env-default: "local"`
+	Dsn         string      `yaml:"dsn" env-required:"true"`
+	JWT_Key     string      `yaml:"jwt_key"`
+	AI_Base_Url string      `yaml:"ai_base_url"`
+	Email       EmailConfig `yaml:"email"`
 	HTTPServer  `yaml:"http_server"`
+}
+
+type EmailConfig struct {
+	SMTPHost string `yaml:"smtp_host" env:"SMTP_HOST"`
+	SMTPPort int    `yaml:"smtp_port" env:"SMTP_PORT" env-default:"587"`
+	Username string `yaml:"username"  env:"SMTP_USERNAME"`
+	Password string `yaml:"password"  env:"SMTP_PASSWORD"`
+	From     string `yaml:"from"      env:"SMTP_FROM"`
 }
 
 type HTTPServer struct {

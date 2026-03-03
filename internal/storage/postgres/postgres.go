@@ -16,6 +16,7 @@ func New(dsn string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
 	err = db.Exec(`
 		DO $$
 		BEGIN
@@ -38,14 +39,14 @@ func New(dsn string) (*gorm.DB, error) {
 				END IF;
 		END
 		$$;
-
 	`).Error
-
 	if err != nil {
-		log.Fatal("Failed to create role_enum:", err)
+		log.Fatal("Failed to create enums:", err)
 	}
+
 	err = db.AutoMigrate(
 		&models.User{},
+		&models.PasswordReset{},
 		&models.TeacherStudent{},
 		&models.SessionHistory{},
 		&models.ChatMessage{},
@@ -60,7 +61,6 @@ func New(dsn string) (*gorm.DB, error) {
 		&models.GameResult{},
 		&models.TestOption{},
 	)
-
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}

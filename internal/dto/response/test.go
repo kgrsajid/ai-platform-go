@@ -1,0 +1,110 @@
+package res
+
+import (
+	"project-go/internal/models"
+	"time"
+)
+
+type TestDetailsResponse struct {
+	ID          uint               `json:"id"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Categories  []models.Category  `json:"categories"`
+	AuthorId    uint               `json:"authorId"`
+	Difficulty  string             `json:"difficulty"`
+	Tags        []string           `json:"tags"`
+	ViewCount   int                `json:"viewCount"`
+	Questions   []QuestionResponse `json:"questions"`
+	CreatedAt   time.Time          `json:"createdAt"`
+}
+
+func ToTestDetailsResponse(t *models.Test) *TestDetailsResponse {
+	questions := make([]QuestionResponse, 0, len(t.Questions))
+	for _, val := range t.Questions {
+		options := make([]OptionResponse, 0, len(val.Options))
+		for _, op := range val.Options {
+			options = append(options, OptionResponse{
+				ID:         op.ID,
+				OptionText: op.OptionText,
+				IsCorrect:  op.IsCorrect,
+			})
+		}
+		questions = append(questions, QuestionResponse{
+			Question: val.Question,
+			Options:  options,
+		})
+	}
+	return &TestDetailsResponse{
+		ID:          t.ID,
+		Title:       t.Title,
+		Description: t.Description,
+		Categories:  t.Categories,
+		Difficulty:  string(t.Difficulty),
+		Tags:        t.Tags,
+		Questions:   questions,
+		CreatedAt:   t.CreatedAt,
+		ViewCount:   int(t.ViewCount),
+		AuthorId:    t.AuthorID,
+	}
+}
+
+type TestResponse struct {
+	ID                uint           `json:"id"`
+	Title             string         `json:"title"`
+	Description       string         `json:"description"`
+	Categories        []TestCategory `json:"categories"`
+	Difficulty        string         `json:"difficulty"`
+	ViewCount         int            `json:"viewCount"`
+	NumberOfQuestions uint           `json:"numberOfQuestion"`
+	Tags              []string       `json:"tags"`
+	CreatedAt         time.Time      `json:"createdAt"`
+}
+
+type TestWithQuestionsCount struct {
+	models.Test
+	NumberOfQuestions int `gorm:"column:number_of_questions"`
+}
+
+func ToTestResponse(t TestWithQuestionsCount) TestResponse {
+	return TestResponse{
+		ID:                t.ID,
+		Title:             t.Title,
+		Difficulty:        string(t.Difficulty),
+		Tags:              t.Tags,
+		NumberOfQuestions: uint(t.NumberOfQuestions),
+		Description:       t.Description,
+		Categories:        toTestCategories(t.Categories),
+		ViewCount:         int(t.ViewCount),
+	}
+}
+
+func toTestCategories(t []models.Category) []TestCategory {
+	categories := make([]TestCategory, 0, len(t))
+	for _, category := range t {
+		categories = append(categories, TestCategory{
+			ID:   category.ID,
+			Name: category.Name,
+		})
+	}
+	return categories
+}
+
+type QuestionResponse struct {
+	Question string           `json:"question"`
+	Options  []OptionResponse `json:"options"`
+}
+
+type OptionResponse struct {
+	ID         uint   `json:"id"`
+	OptionText string `json:"optionText"`
+	IsCorrect  bool   `json:"isCorrect"`
+}
+
+type TestResultResponse struct {
+	ID         uint      `json:"id"`
+	Score      int       `json:"score"`
+	MaxScore   int       `json:"maxScore"`
+	Percentage float64   `json:"percentage"`
+	Attempt    int       `json:"attempt"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
