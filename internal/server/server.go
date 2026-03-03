@@ -3,25 +3,26 @@ package server
 import (
 	"log/slog"
 	"net/http"
+
 	"project-go/internal/app"
-	"project-go/internal/http-server/middleware/auth"
-	"project-go/internal/http-server/middleware/logger"
-	"project-go/internal/http-server/repository/store"
+	"project-go/internal/middleware"
+	"project-go/internal/repository/store"
+
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
 
-func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string) http.Handler {
-	authMiddleware := auth.AuthMiddleware([]byte(jwtKey))
+func NewRouter(app *app.App, log *slog.Logger, s *store.Store, jwtKey string) http.Handler {
+	authMiddleware := middleware.AuthMiddleware([]byte(jwtKey))
 
 	router := chi.NewRouter()
 
-	router.Use(middleware.RequestID)
-	router.Use(middleware.Logger)
-	router.Use(logger.New(log))
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
+	router.Use(chimiddleware.RequestID)
+	router.Use(chimiddleware.Logger)
+	router.Use(middleware.Logger(log))
+	router.Use(chimiddleware.Recoverer)
+	router.Use(chimiddleware.URLFormat)
 
 	router.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
@@ -35,7 +36,7 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Put("/test/{testId}", app.TestUpdate)
 		r.Get("/test", app.TestGetAll)
 		r.Post("/test/result", app.TestResultsAdd)
-		r.Get("/test/result/{testId}", app.TestResultsGetALl)
+		r.Get("/test/result/{testId}", app.TestResultsGetAll)
 		r.Get("/test/{testId}", app.TestGetById)
 		r.Post("/test/category", app.CreateCategory)
 		r.Get("/test/category", app.GetAllCategories)
@@ -45,10 +46,14 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Get("/card/{cardId}", app.CardGetById)
 		r.Put("/card/{cardId}", app.CardUpdate)
 	})
+
 	router.Get("/message", app.WSAddMessage.ServeWS)
 	router.Route("/auth", func(r chi.Router) {
 		r.Post("/register", app.UserCreate)
 		r.Post("/login", app.UserLogin)
+		r.Post("/forgot-password", app.UserForgotPassword)
+		r.Post("/verify-code", app.UserVerifyCode)
+		r.Post("/reset-password", app.UserResetPassword)
 	})
 
 	return router

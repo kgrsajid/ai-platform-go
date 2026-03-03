@@ -178,6 +178,15 @@ type Card struct {
 	Answer       string     `gorm:"type:text;not null"`
 }
 
+type PasswordReset struct {
+	ID        uint      `gorm:"primaryKey"`
+	Email     string    `gorm:"size:100;not null;index"`
+	Code      string    `gorm:"size:10;not null"`
+	Token     string    `gorm:"size:255;index"`
+	ExpiresAt time.Time `gorm:"not null"`
+	CreatedAt time.Time
+}
+
 // Игры
 type Game struct {
 	ID          uint   `gorm:"primaryKey"`
