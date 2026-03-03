@@ -11,3 +11,8 @@ type SummaryRequest struct {
 	Topic    string `json:"topic"`
 	Language string `json:"language"`
 }
+
+type TitleRequest struct {
+	Message  string `json:"message"`
+	Language string `json:"language"`
+}

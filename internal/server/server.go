@@ -30,6 +30,7 @@ func NewRouter(app *app.App, log *slog.Logger, store *store.Store, jwtKey string
 		r.Post("/chat/new", app.AddMessageByCreatingSession)
 		r.Post("/session", app.CreateSession)
 		r.Get("/session", app.GetAllSessions)
+		r.Delete("/session/{sessionId}", app.DeleteSession)
 		r.Get("/session/{sessionId}", app.GetChatBySessionIdHandler)
 		r.Post("/test", app.TestCreate)
 		r.Put("/test/{testId}", app.TestUpdate)

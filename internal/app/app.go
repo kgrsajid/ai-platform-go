@@ -13,6 +13,7 @@ import (
 	GetChatBySessionId "project-go/internal/http-server/handlers/chat/getBySessionId"
 	RetryLastMessage "project-go/internal/http-server/handlers/chat/retry"
 	CreateSession "project-go/internal/http-server/handlers/session/create"
+	DeleteSession "project-go/internal/http-server/handlers/session/delete"
 	GetAllSessions "project-go/internal/http-server/handlers/session/getAll"
 	CategoryCreate "project-go/internal/http-server/handlers/test-category/create"
 	CategoryGetAll "project-go/internal/http-server/handlers/test-category/getAll"
@@ -44,6 +45,7 @@ type App struct {
 	GetChatBySessionIdHandler   http.HandlerFunc
 	GetAllSessions              http.HandlerFunc
 	CreateSession               http.HandlerFunc
+	DeleteSession               http.HandlerFunc
 	RetryLastMessage            http.HandlerFunc
 	TestCreate                  http.HandlerFunc
 	TestUpdate                  http.HandlerFunc
@@ -95,6 +97,7 @@ func New(log *slog.Logger, store *store.Store, jwtKey string, aiUrl string) *App
 	GetChatBySessionIdHandler := GetChatBySessionId.New(log, chatService)
 	GetAllSessions := GetAllSessions.New(log, sessionService)
 	CreateSession := CreateSession.New(log, sessionService)
+	DeleteSession := DeleteSession.New(log, sessionService)
 	RetryLastMessage := RetryLastMessage.New(log, chatService)
 	TestCreate := TestCreate.New(log, testService)
 	TestUpdate := TestUpdate.New(log, testService)
@@ -120,6 +123,7 @@ func New(log *slog.Logger, store *store.Store, jwtKey string, aiUrl string) *App
 		GetChatBySessionIdHandler:   GetChatBySessionIdHandler,
 		GetAllSessions:              GetAllSessions,
 		CreateSession:               CreateSession,
+		DeleteSession:               DeleteSession,
 		RetryLastMessage:            RetryLastMessage,
 		TestCreate:                  TestCreate,
 		TestUpdate:                  TestUpdate,

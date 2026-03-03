@@ -22,6 +22,7 @@ type ChatRepository interface {
 
 type SessionRepository interface {
 	CreateSession(session *models.SessionHistory) (*models.SessionHistory, error)
+	UpdateTitle(sessionID uint, title string) error
 }
 
 type Service struct {
@@ -114,7 +115,22 @@ func (s *Service) AddMessage(
 		return nil, err
 	}
 
-	// 2️⃣ получаем ответ бота (БЛОКИРУЮЩЕ)
+	// 2️⃣ Запускаем генерацию тайтла параллельно с ответом ИИ (только для первого сообщения)
+	titleCh := make(chan string, 1)
+	isFirstMessage := false
+	if existing, countErr := s.chatRepo.GetChatBySessionId(sessionID); countErr == nil && len(existing) == 1 && s.aiAPi != nil {
+		isFirstMessage = true
+		go func() {
+			title, err := s.aiAPi.GenerateTitle(context.Background(), message, "ru")
+			if err == nil && title != "" {
+				titleCh <- title
+			} else {
+				titleCh <- ""
+			}
+		}()
+	}
+
+	// 3️⃣ получаем ответ бота (параллельно с генерацией тайтла)
 	botText := "something went wrong"
 
 	if s.aiAPi != nil {
@@ -137,6 +153,13 @@ func (s *Service) AddMessage(
 				return nil, err
 			}
 			botText = resp.Summary
+		}
+	}
+
+	// Ждём результат генерации тайтла и сохраняем (он уже готов или скоро будет)
+	if isFirstMessage {
+		if title := <-titleCh; title != "" {
+			_ = s.sessionRepo.UpdateTitle(sessionID, title)
 		}
 	}
 

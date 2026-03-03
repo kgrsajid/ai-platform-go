@@ -9,6 +9,7 @@ type Service struct {
 type SessionGetAll interface {
 	GetAllSessions(userId uint) ([]models.SessionHistory, error)
 	CreateSession(session *models.SessionHistory) (*models.SessionHistory, error)
+	DeleteSession(sessionID uint) error
 }
 
 func New(sessionRepo SessionGetAll) *Service {
@@ -23,6 +24,10 @@ func (s *Service) GetAllSessions(userId uint) ([]models.SessionHistory, error) {
 		return nil, err
 	}
 	return sessions, nil
+}
+
+func (s *Service) DeleteSession(sessionID uint) error {
+	return s.sessionRepo.DeleteSession(sessionID)
 }
 
 func (s *Service) CreateSession(userID uint) (*models.SessionHistory, error) {

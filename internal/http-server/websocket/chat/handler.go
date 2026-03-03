@@ -107,7 +107,9 @@ func (h *Handler) ServeWS(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			log.Println(err)
-			return
+			// Всё равно уведомляем фронт — он сделает refetch и покажет статус Error + кнопку retry
+			conn.WriteJSON("bot")
+			continue
 		}
 		fmt.Print(botMsg)
 		conn.WriteJSON("bot")

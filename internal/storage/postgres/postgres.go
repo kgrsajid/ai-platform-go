@@ -65,7 +65,37 @@ func New(dsn string) (*gorm.DB, error) {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
+	seedCategories(db)
+
 	return db, nil
+}
+
+func seedCategories(db *gorm.DB) {
+	var count int64
+	db.Model(&models.Category{}).Count(&count)
+	if count > 0 {
+		return
+	}
+
+	categories := []models.Category{
+		{Name: "Математика"},
+		{Name: "Информатика"},
+		{Name: "Физика"},
+		{Name: "Программирование"},
+		{Name: "Frontend"},
+		{Name: "Backend"},
+		{Name: "Электроника"},
+		{Name: "Компьютеры"},
+		{Name: "Алгоритмы"},
+		{Name: "Базы данных"},
+		{Name: "Сети"},
+	}
+
+	if err := db.Create(&categories).Error; err != nil {
+		log.Println("Failed to seed categories:", err)
+		return
+	}
+	log.Println("Categories seeded successfully")
 }
 
 // func (s *Storage) SaveURL(alias, urlToSave string) (int64, error) {

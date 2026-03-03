@@ -10,3 +10,7 @@ type AIResponse struct {
 type SummaryResponse struct {
 	Summary string `json:"summary"`
 }
+
+type TitleResponse struct {
+	Title string `json:"title"`
+}

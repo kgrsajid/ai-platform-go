@@ -23,6 +23,17 @@ func (r *SessionRepository) CreateSession(session *models.SessionHistory) (*mode
 	return session, nil
 }
 
+func (r *SessionRepository) UpdateTitle(sessionID uint, title string) error {
+	return r.db.Model(&models.SessionHistory{}).Where("id = ?", sessionID).Update("title", title).Error
+}
+
+func (r *SessionRepository) DeleteSession(sessionID uint) error {
+	if err := r.db.Where("session_id = ?", sessionID).Delete(&models.ChatMessage{}).Error; err != nil {
+		return err
+	}
+	return r.db.Where("id = ?", sessionID).Delete(&models.SessionHistory{}).Error
+}
+
 func (r *SessionRepository) GetAllSessions(userId uint) ([]models.SessionHistory, error) {
 	var sessions []models.SessionHistory
 	err := r.db.
