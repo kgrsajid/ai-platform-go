@@ -16,6 +16,7 @@ import (
 type AIClient interface {
 	SendMessage(ctx context.Context, userID uint, message string, language string) (*res.AIResponse, error)
 	CreateSummary(ctx context.Context, userID uint, topic string, language string) (*res.SummaryResponse, error)
+	GenerateTitle(ctx context.Context, message string, language string) (string, error)
 }
 
 type aiClient struct {
@@ -35,6 +36,7 @@ func NewAIClient(baseURL string) AIClient {
 const (
 	messageEndpoint = "/chat"
 	summaryEndpoint = "/summary"
+	titleEndpoint   = "/generate-title"
 )
 
 func (a *aiClient) SendMessage(ctx context.Context, userID uint, message string, language string) (*res.AIResponse, error) {
@@ -69,6 +71,39 @@ func (a *aiClient) SendMessage(ctx context.Context, userID uint, message string,
 	}
 
 	return &result, nil
+}
+
+func (a *aiClient) GenerateTitle(ctx context.Context, message string, language string) (string, error) {
+	body, err := json.Marshal(request.TitleRequest{
+		Message:  message,
+		Language: language,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, a.baseURL+titleEndpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New("ai service returned status " + resp.Status)
+	}
+
+	var result res.TitleResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	return result.Title, nil
 }
 
 func (a *aiClient) CreateSummary(ctx context.Context, userID uint, topic string, language string) (*res.SummaryResponse, error) {

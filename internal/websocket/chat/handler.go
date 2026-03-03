@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -76,11 +75,6 @@ func (h *Handler) ServeWS(w http.ResponseWriter, r *http.Request) {
 		log.Println("ws client disconnected:", userID)
 	}()
 
-	summary := 0
-	if isSummaryActive == 1 {
-		summary = 1
-	}
-
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
@@ -98,9 +92,7 @@ func (h *Handler) ServeWS(w http.ResponseWriter, r *http.Request) {
 			summary = 1
 		}
 
-		fmt.Println(summary)
-
-		botMsg, err := h.chatservice.AddMessage(
+		_, err = h.chatService.AddMessage(
 			r.Context(),
 			userID,
 			uint(sessionID64),
