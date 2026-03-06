@@ -163,6 +163,7 @@ type CardHolder struct {
 	Author      User           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Title       string         `gorm:"type:text;not null"`
 	Description string         `gorm:"type:text"`
+	IsPrivate   bool           `gorm:"not null;default:false;index"`
 	Tags        pq.StringArray `gorm:"type:text[]"`
 	Categories  []Category     `gorm:"many2many:card_categories"`
 	Cards       []Card

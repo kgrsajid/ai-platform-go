@@ -1,6 +1,8 @@
 package cardservice
 
 import (
+	"context"
+	client "project-go/internal/client/chat"
 	"project-go/internal/dto/request"
 	res "project-go/internal/dto/response"
 	"project-go/internal/models"
@@ -15,10 +17,14 @@ type CardRepository interface {
 
 type Service struct {
 	cardRepo CardRepository
+	aiAPI    client.AIClient
 }
 
-func New(cardRepo CardRepository) *Service {
-	return &Service{cardRepo: cardRepo}
+func New(cardRepo CardRepository, aiAPI client.AIClient) *Service {
+	return &Service{
+		cardRepo: cardRepo,
+		aiAPI:    aiAPI,
+	}
 }
 
 func (s *Service) CreateCardHolder(req request.CardHolderRequest) (*res.CardHolderDetailResponse, error) {
@@ -64,6 +70,7 @@ func toCardHolderResponse(cardHolderModels []models.CardHolder) []res.CardHolder
 			AuthorID:          value.AuthorID,
 			Title:             value.Title,
 			Description:       value.Description,
+			IsPrivate:         value.IsPrivate,
 			Tags:              value.Tags,
 			Categories:        res.ToCategoryResponse(value.Categories),
 			NumberOfQuestions: len(value.Cards),
@@ -78,6 +85,7 @@ func toCardHolderModel(req request.CardHolderRequest) models.CardHolder {
 		AuthorID:    *req.AuthorID,
 		Title:       req.Title,
 		Description: *req.Description,
+		IsPrivate:   req.IsPrivate,
 		Tags:        req.Tags,
 		Cards:       toCardModels(req.Cards),
 	}
@@ -104,6 +112,7 @@ func toCardHolderDetailResponse(cardHolder *models.CardHolder) *res.CardHolderDe
 		AuthorID:    cardHolder.AuthorID,
 		Title:       cardHolder.Title,
 		Description: cardHolder.Description,
+		IsPrivate:   cardHolder.IsPrivate,
 		Tags:        cardHolder.Tags,
 		Categories:  res.ToCategoryResponse(cardHolder.Categories),
 		Cards:       toCardResponse(cardHolder.Cards),
@@ -121,4 +130,12 @@ func toCardResponse(cards []models.Card) []res.CardResponse {
 		})
 	}
 	return newCards
+}
+
+func (s *Service) GenerateCards(ctx context.Context, cardPayload request.GenerateCardReq) (*res.GeneratedCardHolderDetailResponse, error) {
+	resp, err := s.aiAPI.GenerateCards(ctx, cardPayload, "ru")
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

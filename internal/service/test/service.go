@@ -1,6 +1,8 @@
 package testservice
 
 import (
+	"context"
+	client "project-go/internal/client/chat"
 	"project-go/internal/dto/request"
 	res "project-go/internal/dto/response"
 	"project-go/internal/models"
@@ -22,12 +24,14 @@ type QuestionRepository interface {
 type Service struct {
 	testRepo     TestRepository
 	questionRepo QuestionRepository
+	aiAPI        client.AIClient
 }
 
-func New(testRepo TestRepository, questionRepo QuestionRepository) *Service {
+func New(testRepo TestRepository, questionRepo QuestionRepository, aiApi client.AIClient) *Service {
 	return &Service{
 		testRepo:     testRepo,
 		questionRepo: questionRepo,
+		aiAPI:        aiApi,
 	}
 }
 
@@ -110,4 +114,12 @@ func mapTestRequestToModel(req request.TestRequest) *models.Test {
 		test.Questions = append(test.Questions, question)
 	}
 	return test
+}
+
+func (s *Service) GenerateQuiz(ctx context.Context, req request.GenerateQuizReq) (*res.GeneratedTestResponse, error) {
+	resp, err := s.aiAPI.GenerateQuiz(ctx, req, "ru")
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

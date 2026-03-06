@@ -8,6 +8,7 @@ import (
 
 	"project-go/internal/dto/request"
 	res "project-go/internal/dto/response"
+	"project-go/internal/lib/auth"
 	"project-go/internal/lib/response"
 	cardservice "project-go/internal/service/card"
 
@@ -31,7 +32,21 @@ func GetAll(log *slog.Logger, svc *cardservice.Service) http.HandlerFunc {
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		search := r.URL.Query().Get("search")
+		isPrivateStr := r.URL.Query().Get("isPrivate")
 		categoriesParams := r.URL.Query()["categories[]"]
+
+		userId, ok := auth.GetUserID(r)
+		if !ok {
+			log.Error("unauthorized: missing user id")
+			render.Status(r, http.StatusUnauthorized)
+			render.JSON(w, r, response.Error("unauthorized"))
+			return
+		}
+
+		isPrivate, err := strconv.ParseBool(isPrivateStr)
+		if err != nil {
+			isPrivate = false
+		}
 
 		if page <= 0 {
 			page = 1
@@ -49,11 +64,23 @@ func GetAll(log *slog.Logger, svc *cardservice.Service) http.HandlerFunc {
 			categories = append(categories, uint(id))
 		}
 
+		var minQ, maxQ *int
+		if v, err := strconv.Atoi(r.URL.Query().Get("minQ")); err == nil {
+			minQ = &v
+		}
+		if v, err := strconv.Atoi(r.URL.Query().Get("maxQ")); err == nil {
+			maxQ = &v
+		}
+
 		filter := request.CardFilter{
 			Limit:      limit,
 			Offset:     (page - 1) * limit,
 			Search:     &search,
+			IsPrivate:  &isPrivate,
+			UserId:     userId,
 			Categories: categories,
+			MinQ:       minQ,
+			MaxQ:       maxQ,
 		}
 
 		cardHolders, total, err := svc.GetAll(filter)

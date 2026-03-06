@@ -30,7 +30,6 @@ type Service struct {
 	aiAPI       client.AIClient
 }
 
-
 func New(chatRepo ChatRepository, sessionRepo SessionRepository, aiAPI client.AIClient) *Service {
 	return &Service{
 		chatRepo:    chatRepo,
@@ -92,19 +91,6 @@ func (s *Service) AddMessage(ctx context.Context, userID, sessionID uint, messag
 	}
 
 	// 2️⃣ Запускаем генерацию тайтла параллельно с ответом ИИ (только для первого сообщения)
-	titleCh := make(chan string, 1)
-	isFirstMessage := false
-	if existing, countErr := s.chatRepo.GetChatBySessionId(sessionID); countErr == nil && len(existing) == 1 && s.aiAPI != nil {
-		isFirstMessage = true
-		go func() {
-			title, err := s.aiAPI.GenerateTitle(context.Background(), message, "ru")
-			if err == nil && title != "" {
-				titleCh <- title
-			} else {
-				titleCh <- ""
-			}
-		}()
-	}
 
 	// 3️⃣ получаем ответ бота (параллельно с генерацией тайтла)
 	botText := "something went wrong"
@@ -130,11 +116,6 @@ func (s *Service) AddMessage(ctx context.Context, userID, sessionID uint, messag
 	}
 
 	// Ждём результат генерации тайтла и сохраняем (он уже готов или скоро будет)
-	if isFirstMessage {
-		if title := <-titleCh; title != "" {
-			_ = s.sessionRepo.UpdateTitle(sessionID, title)
-		}
-	}
 
 	// 3️⃣ сохраняем сообщение бота
 	botMsg := &models.ChatMessage{
@@ -159,9 +140,14 @@ func (s *Service) AddMessageByCreatingSession(ctx context.Context, userID uint, 
 		return nil, errors.New("message cannot be empty")
 	}
 
+	title, err := s.aiAPI.GenerateTitle(context.Background(), message, "ru")
+	if err != nil || title == "" {
+		title = "Новый чат"
+	}
+
 	session := &models.SessionHistory{
 		StudentID: userID,
-		Title:     "Dragon history",
+		Title:     title,
 	}
 	newSession, err := s.sessionRepo.CreateSession(session)
 	if err != nil {

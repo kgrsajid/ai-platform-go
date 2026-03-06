@@ -56,9 +56,20 @@ func (r *CardRepository) GetAll(filter *request.CardFilter) ([]models.CardHolder
 			)
 		`, like, like)
 	}
+	if filter.IsPrivate != nil && *filter.IsPrivate {
+		query = query.Where("card_holders.is_private = true AND card_holders.author_id = ?", filter.UserId)
+	} else {
+		query = query.Where("card_holders.is_private = false")
+	}
 	if len(filter.Categories) > 0 {
 		query = query.Joins("JOIN card_categories cc ON cc.card_holder_id = card_holders.id").
 			Where("cc.category_id IN ?", filter.Categories)
+	}
+	if filter.MinQ != nil {
+		query = query.Where("(SELECT COUNT(*) FROM cards WHERE card_holder_id = card_holders.id) >= ?", *filter.MinQ)
+	}
+	if filter.MaxQ != nil {
+		query = query.Where("(SELECT COUNT(*) FROM cards WHERE card_holder_id = card_holders.id) <= ?", *filter.MaxQ)
 	}
 	var total int64
 	if err := query.Count(&total).Error; err != nil {

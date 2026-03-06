@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"project-go/internal/dto/request"
 	res "project-go/internal/dto/response"
 	"project-go/internal/lib/auth"
 	"project-go/internal/lib/response"
@@ -21,6 +22,12 @@ type sessionResponse struct {
 func Create(log *slog.Logger, svc *sessionservice.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.session.Create"
+		var req request.AddMessageByCreatingSession
+		if err := render.DecodeJSON(r.Body, &req); err != nil {
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, response.Error("invalid request body"))
+			return
+		}
 		log = log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
@@ -34,7 +41,7 @@ func Create(log *slog.Logger, svc *sessionservice.Service) http.HandlerFunc {
 			return
 		}
 
-		newSession, err := svc.CreateSession(userId)
+		newSession, err := svc.CreateSession(userId, req.Message)
 		if err != nil {
 			log.Error("failed to create session", slog.String("error", err.Error()))
 			render.Status(r, http.StatusInternalServerError)

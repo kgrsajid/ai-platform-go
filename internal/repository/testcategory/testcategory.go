@@ -29,3 +29,12 @@ func (r *TestCategoryRepository) GetAllCategory() ([]models.Category, error) {
 	}
 	return categories, nil
 }
+
+func (r *TestCategoryRepository) GetCategoriesByIDs(ids []uint) ([]models.Category, error) {
+	var categories []models.Category
+	err := r.db.Where("id IN ?", ids).Find(&categories).Error
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
+}

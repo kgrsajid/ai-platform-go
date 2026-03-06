@@ -54,3 +54,13 @@ type TestResultReq struct {
 type TestViewReq struct {
 	TestId uint `json:"testId"`
 }
+
+type GenerateQuizReq struct {
+	Title             string  `json:"title"`
+	Description       string  `json:"context"`
+	Categories        []uint  `json:"categories"`
+	Difficulty        string  `json:"difficulty"`
+	IsPrivate         bool    `json:"is_private"`
+	NumberOfQuestions int     `json:"num_questions"`
+	Language          *string `json:"language"`
+}

@@ -11,6 +11,7 @@ type CardHolderDetailResponse struct {
 	AuthorID    uint           `json:"authorId"`
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
+	IsPrivate   bool           `json:"isPrivate"`
 	Tags        pq.StringArray `json:"tags"`
 	Categories  []TestCategory `json:"categories"`
 	Cards       []CardResponse `json:"cards"`
@@ -22,6 +23,7 @@ type CardHolderResponse struct {
 	AuthorID          uint           `json:"authorId"`
 	Title             string         `json:"title"`
 	Description       string         `json:"description"`
+	IsPrivate         bool           `json:"isPrivate"`
 	Tags              pq.StringArray `json:"tags"`
 	Categories        []TestCategory `json:"categories"`
 	NumberOfQuestions int            `json:"numberOfQuestions"`
@@ -32,4 +34,16 @@ type CardResponse struct {
 	ID       uint   `json:"id"`
 	Question string `json:"question"`
 	Answer   string `json:"answer"`
+}
+
+type GeneratedCardHolderDetailResponse struct {
+	ID          uint           `json:"id"`
+	AuthorID    uint           `json:"authorId"`
+	Title       string         `json:"title"`
+	Description string         `json:"description"`
+	IsPrivate   bool           `json:"isPrivate"`
+	Tags        pq.StringArray `json:"tags"`
+	Categories  []uint         `json:"categories"`
+	Cards       []CardResponse `json:"cards"`
+	CreatedAt   time.Time      `json:"createdAt"`
 }

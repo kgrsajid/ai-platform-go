@@ -40,6 +40,7 @@ type App struct {
 	TestGetById                 http.HandlerFunc
 	TestResultsGetAll           http.HandlerFunc
 	TestResultsAdd              http.HandlerFunc
+	GenerateTestDetails         http.HandlerFunc
 	UserCreate                  http.HandlerFunc
 	UserLogin                   http.HandlerFunc
 	UserForgotPassword          http.HandlerFunc
@@ -52,6 +53,7 @@ type App struct {
 	CardGetAll                  http.HandlerFunc
 	CardGetById                 http.HandlerFunc
 	CardUpdate                  http.HandlerFunc
+	GenerateCards               http.HandlerFunc
 
 	WSAddMessage *wschat.Handler
 }
@@ -72,10 +74,10 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 	})
 
 	userSvc := userservice.New(s.UserRepo, s.PasswordResetRepo, emailSender)
-	sessionSvc := sessionservice.New(s.SessionRepo)
+	sessionSvc := sessionservice.New(s.SessionRepo, aiClient)
 	chatSvc := chatservice.New(s.ChatRepo, s.SessionRepo, aiClient)
-	cardSvc := cardservice.New(s.CardRepo)
-	testSvc := testservice.New(s.TestRepo, s.QuestionRepo)
+	cardSvc := cardservice.New(s.CardRepo, aiClient)
+	testSvc := testservice.New(s.TestRepo, s.QuestionRepo, aiClient)
 	testCategorySvc := testcategoryservice.New(s.CategoryRepo)
 	testViewSvc := testviewservice.New(s.TestViewRepo)
 
@@ -108,5 +110,7 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 		UserVerifyCode:              userhandler.VerifyCode(log, userSvc),
 		UserResetPassword:           userhandler.ResetPassword(log, userSvc),
 		WSAddMessage:                wsHandler,
+		GenerateTestDetails:         testhandler.GenerateQuiz(log, testSvc),
+		GenerateCards:               cardhandler.GenerateCard(log, cardSvc),
 	}
 }

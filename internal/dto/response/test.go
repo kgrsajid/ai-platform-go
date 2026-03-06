@@ -108,3 +108,15 @@ type TestResultResponse struct {
 	Attempt    int       `json:"attempt"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
+
+type GeneratedTestResponse struct {
+	ID          uint               `json:"id"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Categories  []uint             `json:"categories"`
+	AuthorId    uint               `json:"authorId"`
+	Difficulty  string             `json:"difficulty"`
+	Tags        []string           `json:"tags"`
+	ViewCount   int                `json:"viewCount"`
+	Questions   []QuestionResponse `json:"questions"`
+}
