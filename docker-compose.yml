@@ -21,6 +21,8 @@ services:
 
   backend:
     build: .
+    volumes:
+    - ./config:/app/config
     container_name: go-backend
     depends_on:
       db:

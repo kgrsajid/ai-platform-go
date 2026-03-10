@@ -1,7 +1,13 @@
 env: "local"
 dsn: "postgresql://postgres:postgres@db:5432/go-project-db?sslmode=disable"
 jwt_key: "spider-man-Sdu-Otrivin"
-ai_base_url: "http://host.docker.internal:8000"
+ai_base_url: "http://localhost:8000"
+email:
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  username: "220107006@stu.sdu.edu.kz"
+  password: "mafy zjhd unww mael"
+  from: "220107006@stu.sdu.edu.kz"
 http_server:
   address: "0.0.0.0:8080"
   timeout: 60s
