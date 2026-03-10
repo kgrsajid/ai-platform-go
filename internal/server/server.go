@@ -18,6 +18,7 @@ func NewRouter(app *app.App, log *slog.Logger, s *store.Store, jwtKey string) ht
 
 	router := chi.NewRouter()
 
+	router.Use(middleware.CORSMiddleware)
 	router.Use(chimiddleware.RequestID)
 	router.Use(chimiddleware.Logger)
 	router.Use(middleware.Logger(log))
