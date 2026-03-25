@@ -31,11 +31,13 @@ func Login(log *slog.Logger, svc *userservice.Service, jwtService *jwt.JWTServic
 
 		var req drequest.LoginRequest
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
-			log.Error("failed to decode request", slog.String("error", err.Error()))
+			log.Error("failed to decode request", slog.String("error", err.Error()), slog.String("content_type", r.Header.Get("Content-Type")))
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("failed to decode request"))
 			return
 		}
+
+		log.Info("login attempt", slog.String("email", req.Email), slog.String("password_set", "yes"))
 
 		if req.Password == "" || req.Email == "" {
 			log.Error("missing fields")
@@ -71,10 +73,14 @@ func Login(log *slog.Logger, svc *userservice.Service, jwtService *jwt.JWTServic
 			Response: response.OK(),
 			Token:    token,
 			User: res.ResponseUser{
-				ID:    foundUser.ID,
-				Email: foundUser.Email,
-				Name:  foundUser.Name,
-				Role:  foundUser.Role,
+				ID:       foundUser.ID,
+				Email:    foundUser.Email,
+				Name:     foundUser.Name,
+				Role:     foundUser.Role,
+				Grade:    foundUser.Grade,
+				School:   foundUser.School,
+				Avatar:   foundUser.Avatar,
+				Language: foundUser.Language,
 			},
 		})
 	}

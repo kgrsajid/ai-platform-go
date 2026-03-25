@@ -5,6 +5,9 @@ type CreateUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Role     string `json:"role"`
+	Grade    int    `json:"grade"`
+	School   string `json:"school"`
+	Language string `json:"language"`
 }
 
 type LoginRequest struct {

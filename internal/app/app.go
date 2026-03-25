@@ -8,6 +8,7 @@ import (
 	"project-go/internal/config"
 	cardhandler "project-go/internal/handler/card"
 	chathandler "project-go/internal/handler/chat"
+	progressionhandler "project-go/internal/handler/progression"
 	sessionhandler "project-go/internal/handler/session"
 	testhandler "project-go/internal/handler/test"
 	testcategoryhandler "project-go/internal/handler/testcategory"
@@ -54,6 +55,14 @@ type App struct {
 	CardGetById                 http.HandlerFunc
 	CardUpdate                  http.HandlerFunc
 	GenerateCards               http.HandlerFunc
+	GetProgression              http.HandlerFunc
+	GetStreak                   http.HandlerFunc
+	ClaimDailyBonus             http.HandlerFunc
+	GetTransactions             http.HandlerFunc
+	GetRewards                  http.HandlerFunc
+	RedeemReward                http.HandlerFunc
+	GetMyRedemptions            http.HandlerFunc
+	GetSubjects                 http.HandlerFunc
 
 	WSAddMessage *wschat.Handler
 }
@@ -83,6 +92,8 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 
 	wsHandler := wschat.NewHandler(hub, authService, chatSvc)
 
+	progressionHandler := progressionhandler.New(log, s.ProgressionRepo)
+
 	return &App{
 		AddChatHandler:              chathandler.Add(log, chatSvc),
 		AddMessageByCreatingSession: chathandler.AddByCreatingSession(log, chatSvc),
@@ -96,7 +107,7 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 		TestGetAll:                  testhandler.GetAll(log, testSvc),
 		TestGetById:                 testhandler.GetByID(log, testSvc),
 		TestResultsGetAll:           testhandler.GetAllUserResults(log, testSvc),
-		TestResultsAdd:              testhandler.AddResult(log, testSvc),
+		TestResultsAdd:              testhandler.AddResult(log, testSvc, s.ProgressionRepo),
 		TestViewAdd:                 testhandler.AddView(log, testViewSvc),
 		CreateCategory:              testcategoryhandler.Create(log, testCategorySvc),
 		GetAllCategories:            testcategoryhandler.GetAll(log, testCategorySvc),
@@ -112,5 +123,13 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 		WSAddMessage:                wsHandler,
 		GenerateTestDetails:         testhandler.GenerateQuiz(log, testSvc),
 		GenerateCards:               cardhandler.GenerateCard(log, cardSvc),
+		GetProgression:              progressionHandler.GetProgression,
+		GetStreak:                   progressionHandler.GetStreak,
+		ClaimDailyBonus:             progressionHandler.ClaimDailyBonus,
+		GetTransactions:             progressionHandler.GetTransactions,
+		GetRewards:                  progressionHandler.GetRewards,
+		RedeemReward:                progressionHandler.RedeemReward,
+		GetMyRedemptions:            progressionHandler.GetMyRedemptions,
+		GetSubjects:                 progressionHandler.GetSubjects,
 	}
 }

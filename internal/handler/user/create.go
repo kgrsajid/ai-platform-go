@@ -3,6 +3,7 @@ package userhandler
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"project-go/internal/dto/request"
 	res "project-go/internal/dto/response"
@@ -62,10 +63,20 @@ func Create(log *slog.Logger, svc *userservice.Service) http.HandlerFunc {
 			Email:    req.Email,
 			Password: hash,
 			Role:     models.Role(req.Role),
+			Grade:    req.Grade,
+			School:   req.School,
+			Language: req.Language,
 		}
 
 		newUser, err := svc.CreateUser(&user)
 		if err != nil {
+			// Check for duplicate email
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "23505") {
+				log.Warn("duplicate email", slog.String("email", req.Email))
+				render.Status(r, http.StatusConflict)
+				render.JSON(w, r, response.Error("email already exists"))
+				return
+			}
 			log.Error("failed to create user", slog.String("error", err.Error()))
 			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to create user"))
@@ -75,10 +86,14 @@ func Create(log *slog.Logger, svc *userservice.Service) http.HandlerFunc {
 		render.JSON(w, r, createResponse{
 			Response: response.OK(),
 			User: res.ResponseUser{
-				ID:    newUser.ID,
-				Email: newUser.Email,
-				Name:  newUser.Name,
-				Role:  newUser.Role,
+				ID:       newUser.ID,
+				Email:    newUser.Email,
+				Name:     newUser.Name,
+				Role:     newUser.Role,
+				Grade:    newUser.Grade,
+				School:   newUser.School,
+				Avatar:   newUser.Avatar,
+				Language: newUser.Language,
 			},
 		})
 	}

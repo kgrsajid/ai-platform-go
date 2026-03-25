@@ -30,6 +30,14 @@ func Error(errMsg string) Response {
 	}
 }
 
+// OKWithData returns a success response with data
+func OKWithData(data interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"status": "OK",
+		"data":   data,
+	}
+}
+
 func ValidationError(errs validator.ValidationErrors) Response {
 	var errMsgs []string
 

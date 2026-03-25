@@ -4,6 +4,7 @@ import (
 	"project-go/internal/repository/card"
 	"project-go/internal/repository/chat"
 	"project-go/internal/repository/passwordreset"
+	"project-go/internal/repository/progression"
 	"project-go/internal/repository/session"
 	"project-go/internal/repository/test"
 	"project-go/internal/repository/testcategory"
@@ -22,6 +23,7 @@ type Store struct {
 	CategoryRepo      *testcategory.TestCategoryRepository
 	TestViewRepo      *testrepo.TestViewRepo
 	PasswordResetRepo *passwordreset.Repository
+	ProgressionRepo   *progression.Repository
 }
 
 func NewStore(db *gorm.DB) *Store {
@@ -35,5 +37,6 @@ func NewStore(db *gorm.DB) *Store {
 		CategoryRepo:      testcategory.New(db),
 		TestViewRepo:      testrepo.NewTestViewRepo(db),
 		PasswordResetRepo: passwordreset.NewRepo(db),
+		ProgressionRepo:   progression.NewRepository(db),
 	}
 }

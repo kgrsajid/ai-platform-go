@@ -23,7 +23,6 @@ func NewRouter(app *app.App, log *slog.Logger, s *store.Store, jwtKey string) ht
 	router.Use(chimiddleware.Logger)
 	router.Use(middleware.Logger(log))
 	router.Use(chimiddleware.Recoverer)
-	router.Use(chimiddleware.URLFormat)
 
 	router.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
@@ -53,6 +52,15 @@ func NewRouter(app *app.App, log *slog.Logger, s *store.Store, jwtKey string) ht
 			r.Put("/{cardId}", app.CardUpdate)
 			r.Post("/generate", app.GenerateCards)
 		})
+		// Gamification endpoints (Phase 0)
+		r.Get("/progression", app.GetProgression)
+		r.Get("/progression/streak", app.GetStreak)
+		r.Post("/progression/streak/claim", app.ClaimDailyBonus)
+		r.Get("/progression/transactions", app.GetTransactions)
+		r.Get("/rewards", app.GetRewards)
+		r.Post("/rewards/{id}/redeem", app.RedeemReward)
+		r.Get("/rewards/my", app.GetMyRedemptions)
+		r.Get("/subjects", app.GetSubjects)
 	})
 
 	router.Get("/message", app.WSAddMessage.ServeWS)

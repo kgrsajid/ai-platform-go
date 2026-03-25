@@ -41,15 +41,19 @@ func IsValidRole(r string) bool {
 
 // Пользователь
 type User struct {
-	ID        uint    `gorm:"primaryKey"`
-	Name      string  `gorm:"size:100;not null"`
-	Email     string  `gorm:"size:100;unique;not null"`
-	Password  string  `gorm:"size:255;not null"`
-	Role      Role    `gorm:"type:role_enum;not null"`                                                       // admin / teacher / student
+	ID        uint    `gorm:"primaryKey" json:"id"`
+	Name      string  `gorm:"size:100;not null" json:"name"`
+	Email     string  `gorm:"size:100;unique;not null" json:"email"`
+	Password  string  `gorm:"size:255;not null" json:"-"`
+	Role      Role    `gorm:"type:role_enum;not null" json:"role"`                                                         // admin / teacher / student
+	Grade     int     `gorm:"index;default:null" json:"grade"`                                                             // 0-11 (null for non-students)
+	School    string  `gorm:"size:255;default:''" json:"school"`
+	Avatar    string  `gorm:"size:500;default:''" json:"avatar"`
+	Language  string  `gorm:"size:5;default:'en'" json:"language"`                                                        // 'en', 'ru', 'kz'
 	Students  []*User `gorm:"many2many:teachers_students;joinForeignKey:TeacherID;JoinReferences:StudentID"` // для учителей
 	Teachers  []*User `gorm:"many2many:teachers_students;joinForeignKey:StudentID;JoinReferences:TeacherID"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // Связь учителей и учеников
@@ -87,25 +91,30 @@ type ChatMessage struct {
 type Category struct {
 	ID          uint         `gorm:"primaryKey" json:"id"`
 	Name        string       `gorm:"size:100;unique;not null" json:"name"`
+	MinGrade    int          `gorm:"index;default:0" json:"min_grade"`
+	MaxGrade    int          `gorm:"index;default:11" json:"max_grade"`
 	Tests       []Test       `gorm:"many2many:test_categories" json:"tests"`
 	CardHolders []CardHolder `gorm:"many2many:card_categories" json:"card_holders"`
 }
 
 // Тест
 type Test struct {
-	ID          uint           `gorm:"primaryKey"`
-	Title       string         `gorm:"size:255;not null"`
-	Description string         `gorm:"type:text"`
-	Difficulty  Difficulty     `gorm:"type:difficulty_enum;not null;default:'medium'"`
-	Categories  []Category     `gorm:"many2many:test_categories"`
-	Tags        pq.StringArray `gorm:"type:text[]"`
-	Questions   []TestQuestion `gorm:"foreignKey:TestID"`
-	IsPrivate   bool           `gorm:"not null;default:false;index"`
-	AuthorID    uint           `gorm:"not null;index"`
-	Author      User           `gorm:"foreignKey:AuthorID"`
-	ViewCount   uint           `gorm:"default:0"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	Title       string         `gorm:"size:255;not null" json:"title"`
+	Description string         `gorm:"type:text" json:"description"`
+	Difficulty  Difficulty     `gorm:"type:difficulty_enum;not null;default:'medium'" json:"difficulty"`
+	MinGrade    int            `gorm:"index;default:0" json:"min_grade"`
+	MaxGrade    int            `gorm:"index;default:11" json:"max_grade"`
+	Categories  []Category     `gorm:"many2many:test_categories" json:"categories"`
+	Subjects    []Subject      `gorm:"many2many:test_subjects" json:"subjects"`
+	Tags        pq.StringArray `gorm:"type:text[]" json:"tags"`
+	Questions   []TestQuestion `gorm:"foreignKey:TestID" json:"questions"`
+	IsPrivate   bool           `gorm:"not null;default:false;index" json:"is_private"`
+	AuthorID    uint           `gorm:"not null;index" json:"author_id"`
+	Author      User           `gorm:"foreignKey:AuthorID" json:"author"`
+	ViewCount   uint           `gorm:"default:0" json:"view_count"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 type TestView struct {
@@ -158,17 +167,19 @@ type TestOption struct {
 
 // Карточки
 type CardHolder struct {
-	ID          uint `gorm:"primaryKey"`
-	AuthorID    uint
-	Author      User           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Title       string         `gorm:"type:text;not null"`
-	Description string         `gorm:"type:text"`
-	IsPrivate   bool           `gorm:"not null;default:false;index"`
-	Tags        pq.StringArray `gorm:"type:text[]"`
-	Categories  []Category     `gorm:"many2many:card_categories"`
-	Cards       []Card
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	AuthorID    uint           `json:"author_id"`
+	Author      User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
+	Title       string         `gorm:"type:text;not null" json:"title"`
+	Description string         `gorm:"type:text" json:"description"`
+	IsPrivate   bool           `gorm:"not null;default:false;index" json:"is_private"`
+	MinGrade    int            `gorm:"index;default:0" json:"min_grade"`
+	MaxGrade    int            `gorm:"index;default:11" json:"max_grade"`
+	Tags        pq.StringArray `gorm:"type:text[]" json:"tags"`
+	Categories  []Category     `gorm:"many2many:card_categories" json:"categories"`
+	Cards       []Card         `json:"cards"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 type Card struct {
