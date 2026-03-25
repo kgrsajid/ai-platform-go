@@ -61,6 +61,12 @@ func NewRouter(app *app.App, log *slog.Logger, s *store.Store, jwtKey string) ht
 		r.Post("/rewards/{id}/redeem", app.RedeemReward)
 		r.Get("/rewards/my", app.GetMyRedemptions)
 		r.Get("/subjects", app.GetSubjects)
+		// Trainer endpoints (Phase 1)
+		r.Get("/trainer/profile", app.GetTrainerProfile)
+		r.Put("/trainer/profile", app.UpdateTrainerProfile)
+		r.Get("/trainer/timeline", app.GetTrainerTimeline)
+		// Leaderboard endpoints (Phase 1)
+		r.Get("/leaderboard", app.GetLeaderboard)
 	})
 
 	router.Get("/message", app.WSAddMessage.ServeWS)

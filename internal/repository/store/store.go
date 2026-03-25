@@ -14,6 +14,7 @@ import (
 )
 
 type Store struct {
+	DB                *gorm.DB
 	UserRepo          *user.UserRepository
 	SessionRepo       *session.SessionRepository
 	ChatRepo          *chat.ChatRepository
@@ -28,6 +29,7 @@ type Store struct {
 
 func NewStore(db *gorm.DB) *Store {
 	return &Store{
+		DB:                db,
 		UserRepo:          user.NewUserRepo(db),
 		SessionRepo:       session.NewSessionRepo(db),
 		ChatRepo:          chat.NewChatRepo(db),

@@ -8,15 +8,18 @@ import (
 	"project-go/internal/config"
 	cardhandler "project-go/internal/handler/card"
 	chathandler "project-go/internal/handler/chat"
+	leaderboardhandler "project-go/internal/handler/leaderboard"
 	progressionhandler "project-go/internal/handler/progression"
 	sessionhandler "project-go/internal/handler/session"
 	testhandler "project-go/internal/handler/test"
 	testcategoryhandler "project-go/internal/handler/testcategory"
+	trainerhandler "project-go/internal/handler/trainer"
 	userhandler "project-go/internal/handler/user"
 	"project-go/internal/lib/auth"
 	emaillib "project-go/internal/lib/email"
 	"project-go/internal/lib/jwt"
 	"project-go/internal/repository/store"
+	trainerrepo "project-go/internal/repository/trainer"
 	cardservice "project-go/internal/service/card"
 	chatservice "project-go/internal/service/chat"
 	sessionservice "project-go/internal/service/session"
@@ -63,6 +66,10 @@ type App struct {
 	RedeemReward                http.HandlerFunc
 	GetMyRedemptions            http.HandlerFunc
 	GetSubjects                 http.HandlerFunc
+	GetTrainerProfile           http.HandlerFunc
+	UpdateTrainerProfile        http.HandlerFunc
+	GetTrainerTimeline          http.HandlerFunc
+	GetLeaderboard              http.HandlerFunc
 
 	WSAddMessage *wschat.Handler
 }
@@ -93,6 +100,9 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 	wsHandler := wschat.NewHandler(hub, authService, chatSvc)
 
 	progressionHandler := progressionhandler.New(log, s.ProgressionRepo)
+	trainerRepo := trainerrepo.NewRepository(s.DB)
+	trainerHandler := trainerhandler.New(log, trainerRepo)
+	leaderboardHandler := leaderboardhandler.New(log, trainerRepo)
 
 	return &App{
 		AddChatHandler:              chathandler.Add(log, chatSvc),
@@ -131,5 +141,9 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 		RedeemReward:                progressionHandler.RedeemReward,
 		GetMyRedemptions:            progressionHandler.GetMyRedemptions,
 		GetSubjects:                 progressionHandler.GetSubjects,
+		GetTrainerProfile:           trainerHandler.GetTrainerProfile,
+		UpdateTrainerProfile:        trainerHandler.UpdateTrainerProfile,
+		GetTrainerTimeline:          trainerHandler.GetTrainerTimeline,
+		GetLeaderboard:              leaderboardHandler.GetLeaderboard,
 	}
 }
