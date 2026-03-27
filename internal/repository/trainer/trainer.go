@@ -187,7 +187,7 @@ func (r *Repository) GetLeaderboard(sort string, page, limit int, gradeFilter *i
 	err := r.db.Table("user_progresses").
 		Select("user_progresses.user_id, users.name, users.email, users.grade, user_progresses.current_level, user_progresses.total_xp, user_progresses.total_points, user_progresses.longest_streak, user_progresses.robot_name, user_progresses.robot_color, user_progresses.created_at").
 		Joins("JOIN users ON users.id = user_progresses.user_id").
-		Where("users.role = ?", "student").
+		Where("users.role IN ?", []string{"student", "teacher", "admin"}).
 		Order(orderClause).
 		Offset(offset).Limit(limit).
 		Scan(&rows).Error
