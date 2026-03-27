@@ -82,7 +82,7 @@ func (r *Repository) GetTrainerTimeline(userID uint, limit int) ([]models.PointT
 // GetTrainerStats returns computed stats for the robot profile
 func (r *Repository) GetTrainerStats(userID uint) (map[string]interface{}, error) {
 	var progress models.UserProgress
-	if err := r.db.Where("user_id = ?", userID).First(&progress).Error; err != nil {
+	if err := r.db.Preload("User").Where("user_id = ?", userID).First(&progress).Error; err != nil {
 		return nil, fmt.Errorf("progress not found: %w", err)
 	}
 
@@ -108,7 +108,11 @@ func (r *Repository) GetTrainerStats(userID uint) (map[string]interface{}, error
 	stageName := getStageName(progress.CurrentLevel)
 
 	// Calculate XP progress to next level
-	band := models.GetGradeBand(progress.User.Grade)
+	grade := progress.User.Grade
+	if grade <= 0 || grade > 11 {
+		grade = 5
+	}
+	band := models.GetGradeBand(grade)
 	xpPerLevel := band.XPPerLevel()
 	xpForCurrentLevel := 0
 	for i := 1; i < progress.CurrentLevel; i++ {
@@ -116,6 +120,13 @@ func (r *Repository) GetTrainerStats(userID uint) (map[string]interface{}, error
 	}
 	currentLevelXP := progress.TotalXP - xpForCurrentLevel
 	nextLevelXP := xpPerLevel
+	progressPercent := float64(currentLevelXP) / float64(nextLevelXP) * 100
+	if progressPercent < 0 {
+		progressPercent = 0
+	}
+	if progressPercent > 100 {
+		progressPercent = 100
+	}
 
 	stats := map[string]interface{}{
 		"robot_name":          progress.RobotName,

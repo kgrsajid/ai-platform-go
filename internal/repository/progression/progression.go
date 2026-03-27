@@ -125,20 +125,26 @@ func (r *Repository) SpendPoints(userID uint, amount int, source, referenceID, d
 func (r *Repository) AddXP(userID uint, xpAmount int, source string) (*models.UserProgress, error) {
 	var progress models.UserProgress
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		// Get or create progress
-		if err := tx.Where("user_id = ?", userID).First(&progress).Error; err != nil {
+		// Get or create progress with user preloaded
+		if err := tx.Preload("User").Where("user_id = ?", userID).First(&progress).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				progress = models.UserProgress{UserID: userID}
 				if err := tx.Create(&progress).Error; err != nil {
 					return err
 				}
+				// Load user for grade
+				tx.Preload("User").First(&progress, progress.ID)
 			} else {
 				return err
 			}
 		}
 
 		// Determine grade band for level calculation
-		band := models.GetGradeBand(progress.User.Grade)
+		grade := progress.User.Grade
+		if grade <= 0 || grade > 11 {
+			grade = 5 // default to Explorers
+		}
+		band := models.GetGradeBand(grade)
 		xpPerLevel := band.XPPerLevel()
 
 		// Add XP
