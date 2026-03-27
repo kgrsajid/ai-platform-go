@@ -2,7 +2,6 @@ package assignment
 
 import (
 	"project-go/internal/models"
-	"time"
 
 	"gorm.io/gorm"
 )

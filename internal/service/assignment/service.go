@@ -9,8 +9,6 @@ import (
 
 	client "project-go/internal/client/chat"
 	"project-go/internal/models"
-
-	"gorm.io/gorm"
 )
 
 type AssignmentRepository interface {
