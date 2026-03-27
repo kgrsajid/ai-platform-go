@@ -4,6 +4,7 @@ type AiRequest struct {
 	UserID   string `json:"user_id"`
 	Message  string `json:"message"`
 	Language string `json:"language"`
+	Grade    int    `json:"grade,omitempty"`
 }
 
 type SummaryRequest struct {

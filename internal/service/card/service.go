@@ -80,11 +80,18 @@ func toCardHolderResponse(cardHolderModels []models.CardHolder) []res.CardHolder
 	return cardHolders
 }
 
+func safeDeref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
 func toCardHolderModel(req request.CardHolderRequest) models.CardHolder {
 	card := models.CardHolder{
 		AuthorID:    *req.AuthorID,
 		Title:       req.Title,
-		Description: *req.Description,
+		Description: safeDeref(req.Description),
 		IsPrivate:   req.IsPrivate,
 		Tags:        req.Tags,
 		Cards:       toCardModels(req.Cards),

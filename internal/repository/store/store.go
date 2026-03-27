@@ -1,6 +1,7 @@
 package store
 
 import (
+	"project-go/internal/repository/assignment"
 	"project-go/internal/repository/card"
 	"project-go/internal/repository/chat"
 	"project-go/internal/repository/passwordreset"
@@ -25,6 +26,7 @@ type Store struct {
 	TestViewRepo      *testrepo.TestViewRepo
 	PasswordResetRepo *passwordreset.Repository
 	ProgressionRepo   *progression.Repository
+	AssignmentRepo    *assignment.Repository
 }
 
 func NewStore(db *gorm.DB) *Store {
@@ -40,5 +42,6 @@ func NewStore(db *gorm.DB) *Store {
 		TestViewRepo:      testrepo.NewTestViewRepo(db),
 		PasswordResetRepo: passwordreset.NewRepo(db),
 		ProgressionRepo:   progression.NewRepository(db),
+		AssignmentRepo:    assignment.NewRepository(db),
 	}
 }

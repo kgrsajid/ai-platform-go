@@ -14,11 +14,12 @@ import (
 )
 
 type AIClient interface {
-	SendMessage(ctx context.Context, userID uint, message string, language string) (*res.AIResponse, error)
+	SendMessage(ctx context.Context, userID uint, message string, language string, grade int) (*res.AIResponse, error)
 	CreateSummary(ctx context.Context, userID uint, topic string, language string) (*res.SummaryResponse, error)
 	GenerateTitle(ctx context.Context, message string, language string) (string, error)
 	GenerateQuiz(ctx context.Context, quiz request.GenerateQuizReq, language string) (*res.GeneratedTestResponse, error)
 	GenerateCards(ctx context.Context, cardPayload request.GenerateCardReq, language string) (*res.GeneratedCardHolderDetailResponse, error)
+	EvaluateAssignment(ctx context.Context, question, studentAnswer, rubric string, grade int) (*res.AssignmentEvalResponse, error)
 }
 
 type aiClient struct {
@@ -40,18 +41,20 @@ func NewAIClient(baseURL string) AIClient {
 }
 
 const (
-	messageEndpoint = "/chat"
-	summaryEndpoint = "/summary"
-	titleEndpoint   = "/generate-title"
-	generateQuiz    = "/quiz/generate-for-platform"
-	generateCard    = "/flashcards/generate-for-platform"
+	messageEndpoint        = "/chat"
+	summaryEndpoint        = "/summary"
+	titleEndpoint          = "/generate-title"
+	generateQuiz           = "/quiz/generate-for-platform"
+	generateCard           = "/flashcards/generate-for-platform"
+	evaluateAssignment     = "/assignment/evaluate"
 )
 
-func (a *aiClient) SendMessage(ctx context.Context, userID uint, message string, language string) (*res.AIResponse, error) {
+func (a *aiClient) SendMessage(ctx context.Context, userID uint, message string, language string, grade int) (*res.AIResponse, error) {
 	body, err := json.Marshal(request.AiRequest{
 		UserID:   strconv.FormatUint(uint64(userID), 10),
 		Message:  message,
 		Language: language,
+		Grade:    grade,
 	})
 	if err != nil {
 		return nil, err
@@ -191,6 +194,38 @@ func (a *aiClient) GenerateTitle(ctx context.Context, message string, language s
 	}
 
 	return result.Title, nil
+}
+
+func (a *aiClient) EvaluateAssignment(ctx context.Context, question, studentAnswer, rubric string, grade int) (*res.AssignmentEvalResponse, error) {
+	payload := map[string]interface{}{
+		"question":       question,
+		"student_answer": studentAnswer,
+		"rubric":         rubric,
+		"grade":          grade,
+		"language":       "ru",
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, a.baseURL+evaluateAssignment, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := a.slowClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("ai service returned status " + resp.Status)
+	}
+	var result res.AssignmentEvalResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 func (a *aiClient) CreateSummary(ctx context.Context, userID uint, topic string, language string) (*res.SummaryResponse, error) {

@@ -6,6 +6,7 @@ import (
 
 	client "project-go/internal/client/chat"
 	"project-go/internal/config"
+	assignmenthandler "project-go/internal/handler/assignment"
 	cardhandler "project-go/internal/handler/card"
 	chathandler "project-go/internal/handler/chat"
 	leaderboardhandler "project-go/internal/handler/leaderboard"
@@ -20,6 +21,7 @@ import (
 	"project-go/internal/lib/jwt"
 	"project-go/internal/repository/store"
 	trainerrepo "project-go/internal/repository/trainer"
+	assignmentservice "project-go/internal/service/assignment"
 	cardservice "project-go/internal/service/card"
 	chatservice "project-go/internal/service/chat"
 	sessionservice "project-go/internal/service/session"
@@ -70,6 +72,17 @@ type App struct {
 	UpdateTrainerProfile        http.HandlerFunc
 	GetTrainerTimeline          http.HandlerFunc
 	GetLeaderboard              http.HandlerFunc
+	// Assignment handlers
+	AssignmentCreate            http.HandlerFunc
+	AssignmentGetPublished      http.HandlerFunc
+	AssignmentGetMy             http.HandlerFunc
+	AssignmentGetByID           http.HandlerFunc
+	AssignmentUpdate            http.HandlerFunc
+	AssignmentDelete            http.HandlerFunc
+	AssignmentSubmit            http.HandlerFunc
+	AssignmentGetMySubmissions  http.HandlerFunc
+	AssignmentGetSubmissions    http.HandlerFunc
+	AssignmentGetStudentStats   http.HandlerFunc
 
 	WSAddMessage *wschat.Handler
 }
@@ -91,7 +104,7 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 
 	userSvc := userservice.New(s.UserRepo, s.PasswordResetRepo, emailSender)
 	sessionSvc := sessionservice.New(s.SessionRepo, aiClient)
-	chatSvc := chatservice.New(s.ChatRepo, s.SessionRepo, aiClient)
+	chatSvc := chatservice.New(s.ChatRepo, s.SessionRepo, s.ProgressionRepo, aiClient, log)
 	cardSvc := cardservice.New(s.CardRepo, aiClient)
 	testSvc := testservice.New(s.TestRepo, s.QuestionRepo, aiClient)
 	testCategorySvc := testcategoryservice.New(s.CategoryRepo)
@@ -103,6 +116,15 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 	trainerRepo := trainerrepo.NewRepository(s.DB)
 	trainerHandler := trainerhandler.New(log, trainerRepo)
 	leaderboardHandler := leaderboardhandler.New(log, trainerRepo)
+
+	// Assignment service + handler
+	assignmentSvc := assignmentservice.New(s.AssignmentRepo, s.ProgressionRepo, aiClient, log)
+	assignmentHandler := assignmenthandler.New(log, assignmentSvc)
+
+	// Auto-migrate assignment tables
+	if err := s.AssignmentRepo.AutoMigrate(); err != nil {
+		log.Error("failed to auto-migrate assignment tables", slog.String("error", err.Error()))
+	}
 
 	return &App{
 		AddChatHandler:              chathandler.Add(log, chatSvc),
@@ -145,5 +167,16 @@ func New(log *slog.Logger, s *store.Store, jwtKey string, aiUrl string, emailCfg
 		UpdateTrainerProfile:        trainerHandler.UpdateTrainerProfile,
 		GetTrainerTimeline:          trainerHandler.GetTrainerTimeline,
 		GetLeaderboard:              leaderboardHandler.GetLeaderboard,
+		// Assignment routes
+		AssignmentCreate:            assignmentHandler.CreateAssignment,
+		AssignmentGetPublished:      assignmentHandler.GetPublishedAssignments,
+		AssignmentGetMy:             assignmentHandler.GetMyAssignments,
+		AssignmentGetByID:           assignmentHandler.GetAssignmentByID,
+		AssignmentUpdate:            assignmentHandler.UpdateAssignment,
+		AssignmentDelete:            assignmentHandler.DeleteAssignment,
+		AssignmentSubmit:            assignmentHandler.SubmitAnswer,
+		AssignmentGetMySubmissions:  assignmentHandler.GetMySubmissions,
+		AssignmentGetSubmissions:    assignmentHandler.GetAssignmentSubmissions,
+		AssignmentGetStudentStats:   assignmentHandler.GetStudentStats,
 	}
 }

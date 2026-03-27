@@ -199,7 +199,40 @@ type PasswordReset struct {
 	CreatedAt time.Time
 }
 
-// Игры
+// Assignments (replacing Games)
+type Assignment struct {
+	ID          uint   `gorm:"primaryKey"`
+	TeacherID   uint   `gorm:"index;not null" json:"teacher_id"`
+	Teacher     User   `gorm:"constraint:onUpdate:CASCADE,onDelete:CASCADE"`
+	Title       string `gorm:"type:text;not null" json:"title"`
+	Question    string `gorm:"type:text;not null" json:"question"`     // The actual question/task
+	Rubric      string `gorm:"type:text" json:"rubric"`               // Optional evaluation criteria
+	Subject     string `gorm:"type:text" json:"subject"`              // e.g. "Mathematics", "Biology"
+	GradeMin    int    `gorm:"index;default:0" json:"grade_min"`      // Min grade this assignment targets
+	GradeMax    int    `gorm:"index;default:11" json:"grade_max"`     // Max grade this assignment targets
+	IsPublished bool   `gorm:"default:false" json:"is_published"`     // Only published assignments shown to students
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type AssignmentSubmission struct {
+	ID           uint   `gorm:"primaryKey"`
+	StudentID    uint   `gorm:"index;not null" json:"student_id"`
+	Student      User   `gorm:"constraint:onUpdate:CASCADE,onDelete:CASCADE"`
+	AssignmentID uint   `gorm:"index;not null" json:"assignment_id"`
+	Assignment   Assignment `gorm:"constraint:onUpdate:CASCADE,onDelete:CASCADE"`
+	Answer       string `gorm:"type:text;not null" json:"answer"`     // Student's text answer
+	Score        int    `gorm:"default:0" json:"score"`               // 0-100 from LLM
+	MaxScore     int    `gorm:"default:100" json:"max_score"`         // Always 100
+	Feedback     string `gorm:"type:text" json:"feedback"`           // LLM feedback
+	Strengths    string `gorm:"type:text;json" json:"strengths"`      // JSON array of strengths
+	Improvements string `gorm:"type:text;json" json:"improvements"`   // JSON array of improvements
+	GradeLevel   string `gorm:"type:text" json:"grade_level"`         // excellent/good/adequate/below_standard
+	IsEvaluated  bool   `gorm:"default:false" json:"is_evaluated"`
+	CreatedAt    time.Time `json:"created_at"`
+	EvaluatedAt  *time.Time `json:"evaluated_at"`
+}
+
+// Legacy Game models (kept for migration, will be removed)
 type Game struct {
 	ID          uint   `gorm:"primaryKey"`
 	Title       string `gorm:"type:text;not null"`

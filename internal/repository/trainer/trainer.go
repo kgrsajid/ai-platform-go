@@ -98,11 +98,11 @@ func (r *Repository) GetTrainerStats(userID uint) (map[string]interface{}, error
 		Where("user_id = ? AND source = ?", userID, "flashcard").
 		Count(&flashcardsStudied)
 
-	// Count battles won (from GameResult)
-	var battlesWon int64
-	r.db.Model(&models.GameResult{}).
-		Where("user_id = ? AND result = ?", userID, "win").
-		Count(&battlesWon)
+	// Count assignments completed
+	var assignmentsCompleted int64
+	r.db.Model(&models.AssignmentSubmission{}).
+		Where("user_id = ? AND is_evaluated = ?", userID, true).
+		Count(&assignmentsCompleted)
 
 	// Determine stage name based on level
 	stageName := getStageName(progress.CurrentLevel)
@@ -118,21 +118,21 @@ func (r *Repository) GetTrainerStats(userID uint) (map[string]interface{}, error
 	nextLevelXP := xpPerLevel
 
 	stats := map[string]interface{}{
-		"robot_name":         progress.RobotName,
-		"robot_level":        progress.RobotLevel,
-		"robot_color":        progress.RobotColor,
-		"current_level":      progress.CurrentLevel,
-		"stage_name":         stageName,
-		"total_xp":           progress.TotalXP,
-		"current_level_xp":   currentLevelXP,
-		"next_level_xp":      nextLevelXP,
-		"progress_percent":   float64(currentLevelXP) / float64(nextLevelXP) * 100,
-		"quizzes_completed":  quizzesCompleted,
-		"flashcards_studied": flashcardsStudied,
-		"battles_won":        battlesWon,
-		"current_streak":     progress.CurrentStreak,
-		"longest_streak":     progress.LongestStreak,
-		"joined_at":          progress.CreatedAt,
+		"robot_name":          progress.RobotName,
+		"robot_level":         progress.RobotLevel,
+		"robot_color":         progress.RobotColor,
+		"current_level":       progress.CurrentLevel,
+		"stage_name":          stageName,
+		"total_xp":            progress.TotalXP,
+		"current_level_xp":    currentLevelXP,
+		"next_level_xp":       nextLevelXP,
+		"progress_percent":    float64(currentLevelXP) / float64(nextLevelXP) * 100,
+		"quizzes_completed":   quizzesCompleted,
+		"flashcards_studied":  flashcardsStudied,
+		"assignments_completed": assignmentsCompleted,
+		"current_streak":      progress.CurrentStreak,
+		"longest_streak":      progress.LongestStreak,
+		"joined_at":           progress.CreatedAt,
 	}
 
 	return stats, nil

@@ -230,6 +230,75 @@ func (b GradeBand) StreakBonusPoints(streakDay int) int {
 	}
 }
 
+// ChatXP returns XP for a chat message
+func (b GradeBand) ChatXP() int {
+	switch b {
+	case BandSprouts:
+		return 1
+	case BandExplorers:
+		return 2
+	case BandChampions:
+		return 3
+	default:
+		return 2
+	}
+}
+
+// AssignmentXP calculates XP for an assignment based on score
+func (b GradeBand) AssignmentXP(score int) int {
+	// Base XP: 1 per 10 points scored
+	xp := score / 10
+	if xp < 1 && score > 0 {
+		xp = 1
+	}
+
+	// Bonus for high scores
+	switch b {
+	case BandSprouts:
+		if score >= 90 {
+			xp += 3
+		} else if score >= 70 {
+			xp += 2
+		}
+	case BandExplorers:
+		if score >= 90 {
+			xp += 5
+		} else if score >= 70 {
+			xp += 3
+		} else if score >= 50 {
+			xp += 1
+		}
+	case BandChampions:
+		if score >= 90 {
+			xp += 7
+		} else if score >= 70 {
+			xp += 4
+		} else if score >= 50 {
+			xp += 2
+		}
+	}
+
+	return xp
+}
+
+// AssignmentPoints calculates points for an assignment
+func (b GradeBand) AssignmentPoints(score int) int {
+	// Points scale with score
+	points := score / 20
+	if points < 1 && score > 0 {
+		points = 1
+	}
+
+	// Bonus for high performers
+	if score >= 90 {
+		points += 2
+	} else if score >= 70 {
+		points += 1
+	}
+
+	return points
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a

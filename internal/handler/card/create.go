@@ -55,7 +55,7 @@ func Create(log *slog.Logger, svc *cardservice.Service) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to create card holder", slog.String("error", err.Error()))
 			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("internal server error"))
+			render.JSON(w, r, response.Error("failed to create card set: "+err.Error()))
 			return
 		}
 
