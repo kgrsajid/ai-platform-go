@@ -66,8 +66,8 @@ func (h *Handler) GetProgression(w http.ResponseWriter, r *http.Request) {
 
 	// Get user's grade for band calculation
 	grade := user.Grade
-	if grade == 0 {
-		grade = 5 // default
+	if grade <= 0 || grade > 11 {
+		grade = 5
 	}
 	band := models.GetGradeBand(grade)
 	xpPerLevel := band.XPPerLevel()
@@ -155,7 +155,7 @@ func (h *Handler) ClaimDailyBonus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	grade := user.Grade
-	if grade == 0 {
+	if grade <= 0 || grade > 11 {
 		grade = 5
 	}
 
@@ -261,7 +261,7 @@ func (h *Handler) GetRewards(w http.ResponseWriter, r *http.Request) {
 	}
 
 	grade := user.Grade
-	if grade == 0 {
+	if grade <= 0 || grade > 11 {
 		grade = 5
 	}
 	rewards, err := h.repo.GetRewards(grade)

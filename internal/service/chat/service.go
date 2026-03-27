@@ -174,7 +174,7 @@ func (s *Service) awardChatGamification(userID uint) {
 	}
 
 	grade := user.Grade
-	if grade == 0 {
+	if grade <= 0 || grade > 11 {
 		grade = 5
 	}
 	band := models.GetGradeBand(grade)

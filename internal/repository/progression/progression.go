@@ -132,7 +132,6 @@ func (r *Repository) AddXP(userID uint, xpAmount int, source string) (*models.Us
 				if err := tx.Create(&progress).Error; err != nil {
 					return err
 				}
-				// Load user for grade
 				tx.Preload("User").First(&progress, progress.ID)
 			} else {
 				return err
@@ -140,9 +139,10 @@ func (r *Repository) AddXP(userID uint, xpAmount int, source string) (*models.Us
 		}
 
 		// Determine grade band for level calculation
+		// Grade 0 (null from DB) defaults to Explorers for fair progression
 		grade := progress.User.Grade
 		if grade <= 0 || grade > 11 {
-			grade = 5 // default to Explorers
+			grade = 5
 		}
 		band := models.GetGradeBand(grade)
 		xpPerLevel := band.XPPerLevel()
